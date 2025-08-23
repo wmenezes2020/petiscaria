@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -9,7 +9,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Mail, Lock, Building2 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
-import { useRequireGuest } from '@/hooks/useAuth';
 import toast from 'react-hot-toast';
 
 const loginSchema = z.object({
@@ -23,11 +22,30 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const router = useRouter();
-    const { login, error, clearError } = useAuthStore();
+    const { login, error, clearError, isAuthenticated, checkAuthStatus } = useAuthStore();
 
-    // Verificar se já está autenticado
-    const { isLoading: authLoading } = useRequireGuest();
+    // Verificar se já está autenticado e redirecionar se necessário
+    useEffect(() => {
+        console.log('🔍 Verificando autenticação:', { isAuthenticated });
+
+        // Verificar o status de autenticação
+        checkAuthStatus();
+
+        // Aguardar um tick para garantir que o estado foi carregado do localStorage
+        const timer = setTimeout(() => {
+            if (isAuthenticated) {
+                console.log('🔄 Usuário já autenticado, redirecionando...');
+                router.push('/app/dashboard');
+            } else {
+                console.log('👤 Usuário não autenticado, mostrando formulário');
+                setIsCheckingAuth(false);
+            }
+        }, 100);
+
+        return () => clearTimeout(timer);
+    }, [isAuthenticated, router, checkAuthStatus]);
 
     const {
         register,
@@ -42,29 +60,35 @@ export default function LoginPage() {
             setIsLoading(true);
             clearError();
 
+            console.log('🚀 Iniciando login...');
             await login(data.email, data.password, data.companyId);
 
+            console.log('✅ Login realizado com sucesso!');
             toast.success('Login realizado com sucesso!');
 
             // Aguardar um tick para garantir que o estado foi atualizado
             setTimeout(() => {
+                console.log('🔄 Redirecionando para dashboard...');
                 router.push('/app/dashboard');
             }, 100);
 
         } catch (error: any) {
+            console.error('❌ Erro no login:', error);
             toast.error(error.message || 'Erro ao fazer login');
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Se estiver carregando a autenticação, mostrar loading
-    if (authLoading) {
+
+
+    // Se estiver verificando autenticação, mostrar loading
+    if (isCheckingAuth) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Carregando...</p>
+                    <p className="text-gray-600">Verificando autenticação...</p>
                 </div>
             </div>
         );

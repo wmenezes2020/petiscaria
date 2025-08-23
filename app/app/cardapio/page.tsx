@@ -20,10 +20,14 @@ export default function CardapioPage() {
       try {
         setIsLoading(true);
         const items = await getMenuItems();
-        setMenuItems(items);
+        // Garantir que items seja sempre um array
+        const itemsArray = Array.isArray(items) ? items : [];
+        setMenuItems(itemsArray);
       } catch (e) {
         console.error('Failed to fetch menu items:', e);
         setError('Não foi possível carregar os itens do cardápio.');
+        // Definir array vazio em caso de erro
+        setMenuItems([]);
       } finally {
         setIsLoading(false);
       }

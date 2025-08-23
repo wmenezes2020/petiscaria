@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MenuItemResponse, deleteMenuItem } from '@/lib/api';
 import { CategoryPill } from './CategoryPill';
 import { MoreVertical, Edit, Trash2 } from 'lucide-react';
@@ -13,11 +13,17 @@ interface MenuTableProps {
 }
 
 export function MenuTable({ menuItems: initialMenuItems, onEdit }: MenuTableProps) {
-  const [menuItems, setMenuItems] = useState(initialMenuItems);
+  // Garantir que menuItems seja sempre um array
+  const [menuItems, setMenuItems] = useState(Array.isArray(initialMenuItems) ? initialMenuItems : []);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
 
   const canManageMenu = user?.role === 'admin' || user?.role === 'manager';
+
+  // Sincronizar com as props quando elas mudarem
+  useEffect(() => {
+    setMenuItems(Array.isArray(initialMenuItems) ? initialMenuItems : []);
+  }, [initialMenuItems]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {

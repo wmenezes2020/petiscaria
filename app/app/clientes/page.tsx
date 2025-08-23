@@ -1,22 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  PlusIcon, 
-  MagnifyingGlassIcon, 
-  FunnelIcon,
-  EyeIcon,
-  PencilIcon,
-  TrashIcon,
+import {
+  Plus,
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
+  DollarSign,
+  ShoppingBag,
   UserIcon,
-  PhoneIcon,
-  EnvelopeIcon,
-  MapPinIcon,
-  CalendarIcon,
-  CurrencyDollarIcon,
-  ShoppingBagIcon
-} from '@heroicons/react/24/outline';
+  PencilIcon,
+  EyeIcon,
+  TrashIcon
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+import FunnelIcon from '@heroicons/react/24/outline/FunnelIcon';
 
 interface Customer {
   id: string;
@@ -96,8 +101,8 @@ export default function ClientesPage() {
 
   const filteredCustomers = customers.filter(customer => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.phone.includes(searchTerm);
+      customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.phone.includes(searchTerm);
     const matchesStatus = selectedStatus === 'all' || customer.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });
@@ -108,7 +113,7 @@ export default function ClientesPage() {
   };
 
   const handleStatusChange = (customerId: string, newStatus: 'active' | 'inactive') => {
-    setCustomers(customers.map(customer => 
+    setCustomers(customers.map(customer =>
       customer.id === customerId ? { ...customer, status: newStatus } : customer
     ));
   };
@@ -136,7 +141,7 @@ export default function ClientesPage() {
                 onClick={() => setShowNewCustomerModal(true)}
                 className="btn-primary flex items-center space-x-2"
               >
-                <PlusIcon className="w-5 h-5" />
+                <Plus className="w-5 h-5" />
                 <span>Novo Cliente</span>
               </button>
             </div>
@@ -154,7 +159,7 @@ export default function ClientesPage() {
           >
             <div className="flex items-center">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <UserIcon className="w-6 h-6 text-blue-600" />
+                <User className="w-6 h-6 text-blue-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total de Clientes</p>
@@ -171,7 +176,7 @@ export default function ClientesPage() {
           >
             <div className="flex items-center">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <ShoppingBagIcon className="w-6 h-6 text-green-600" />
+                <ShoppingBag className="w-6 h-6 text-green-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Pedidos Hoje</p>
@@ -188,7 +193,7 @@ export default function ClientesPage() {
           >
             <div className="flex items-center">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <CurrencyDollarIcon className="w-6 h-6 text-purple-600" />
+                <DollarSign className="w-6 h-6 text-purple-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Faturamento Hoje</p>
@@ -222,7 +227,7 @@ export default function ClientesPage() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Buscar clientes por nome, email ou telefone..."
@@ -438,7 +443,7 @@ export default function ClientesPage() {
                 ×
               </button>
             </div>
-            
+
             <div className="space-y-6">
               {/* Basic Info */}
               <div className="bg-gray-50 rounded-lg p-4">
