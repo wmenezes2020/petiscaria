@@ -7,11 +7,17 @@ import * as z from 'zod';
 import { X, Save, Plus, Edit } from 'lucide-react';
 
 const tableSchema = z.object({
-  number: z.number().min(1, 'Número da mesa deve ser maior que 0'),
+  name: z.string().min(1, 'Nome da mesa é obrigatório'),
   capacity: z.number().min(1, 'Capacidade deve ser maior que 0'),
   areaId: z.string().uuid('Selecione uma área'),
-  minimumOrder: z.number().min(0, 'Pedido mínimo não pode ser negativo'),
-  notes: z.string().optional(),
+  locationId: z.string().uuid('Selecione uma localização'),
+  isActive: z.boolean(),
+  isAvailable: z.boolean(),
+  description: z.string().optional(),
+  coordinates: z.object({
+    x: z.number(),
+    y: z.number()
+  }).optional(),
 });
 
 type TableFormData = z.infer<typeof tableSchema>;
@@ -19,6 +25,13 @@ type TableFormData = z.infer<typeof tableSchema>;
 interface Area {
   id: string;
   name: string;
+  description?: string;
+}
+
+interface Location {
+  id: string;
+  name: string;
+  description?: string;
 }
 
 interface TableFormModalProps {
@@ -27,16 +40,23 @@ interface TableFormModalProps {
   onSave: (data: TableFormData) => void;
   table?: {
     id: string;
-    number: number;
+    name: string;
     capacity: number;
     areaId: string;
-    minimumOrder: number;
-    notes?: string;
+    locationId: string;
+    isActive: boolean;
+    isAvailable: boolean;
+    description?: string;
+    coordinates?: {
+      x: number;
+      y: number;
+    };
   };
   areas: Area[];
+  locations?: Location[];
 }
 
-export function TableFormModal({ isOpen, onClose, onSave, table, areas }: TableFormModalProps) {
+export function TableFormModal({ isOpen, onClose, onSave, table, areas, locations }: TableFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -47,30 +67,39 @@ export function TableFormModal({ isOpen, onClose, onSave, table, areas }: TableF
   } = useForm<TableFormData>({
     resolver: zodResolver(tableSchema),
     defaultValues: {
-      number: table?.number || 1,
+      name: table?.name || '',
       capacity: table?.capacity || 4,
       areaId: table?.areaId || '',
-      minimumOrder: table?.minimumOrder || 0,
-      notes: table?.notes || '',
+      locationId: table?.locationId || '',
+      isActive: table?.isActive ?? true,
+      isAvailable: table?.isAvailable ?? true,
+      description: table?.description || '',
+      coordinates: table?.coordinates || { x: 0, y: 0 },
     },
   });
 
   useEffect(() => {
     if (isOpen && table) {
       reset({
-        number: table.number,
+        name: table.name,
         capacity: table.capacity,
         areaId: table.areaId,
-        minimumOrder: table.minimumOrder,
-        notes: table.notes,
+        locationId: table.locationId,
+        isActive: table.isActive,
+        isAvailable: table.isAvailable,
+        description: table.description || '',
+        coordinates: table.coordinates || { x: 0, y: 0 },
       });
     } else if (isOpen) {
       reset({
-        number: 1,
+        name: '',
         capacity: 4,
         areaId: '',
-        minimumOrder: 0,
-        notes: '',
+        locationId: '',
+        isActive: true,
+        isAvailable: true,
+        description: '',
+        coordinates: { x: 0, y: 0 },
       });
     }
   }, [isOpen, table, reset]);
@@ -91,8 +120,21 @@ export function TableFormModal({ isOpen, onClose, onSave, table, areas }: TableF
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
+    <div
+      className="fixed inset-0 flex items-center justify-center p-4 transition-all duration-200"
+      style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backdropFilter: 'blur(4px)',
+        zIndex: 9999,
+      }}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200"
+        style={{
+          backgroundColor: 'white',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
@@ -118,22 +160,22 @@ export function TableFormModal({ isOpen, onClose, onSave, table, areas }: TableF
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Número da Mesa
-              </label>
-              <input
-                type="number"
-                {...register('number', { valueAsNumber: true })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="1"
-              />
-              {errors.number && (
-                <p className="mt-1 text-sm text-red-600">{errors.number.message}</p>
-              )}
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nome da Mesa
+            </label>
+            <input
+              type="text"
+              {...register('name')}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              placeholder="Mesa 1"
+            />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+            )}
+          </div>
 
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Capacidade
@@ -148,50 +190,104 @@ export function TableFormModal({ isOpen, onClose, onSave, table, areas }: TableF
                 <p className="mt-1 text-sm text-red-600">{errors.capacity.message}</p>
               )}
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Coordenada X
+              </label>
+              <input
+                type="number"
+                {...register('coordinates.x', { valueAsNumber: true })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Área
+              </label>
+              <select
+                {...register('areaId')}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              >
+                <option value="">Selecione uma área</option>
+                {areas.map((area) => (
+                  <option key={area.id} value={area.id}>
+                    {area.name}
+                  </option>
+                ))}
+              </select>
+              {errors.areaId && (
+                <p className="mt-1 text-sm text-red-600">{errors.areaId.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Localização
+              </label>
+              <select
+                {...register('locationId')}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              >
+                <option value="">Selecione uma localização</option>
+                {locations?.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {location.name}
+                  </option>
+                )) || []}
+              </select>
+              {errors.locationId && (
+                <p className="mt-1 text-sm text-red-600">{errors.locationId.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                {...register('isActive')}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label className="text-sm font-medium text-gray-700">
+                Mesa Ativa
+              </label>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                {...register('isAvailable')}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label className="text-sm font-medium text-gray-700">
+                Mesa Disponível
+              </label>
+            </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Área
-            </label>
-            <select
-              {...register('areaId')}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            >
-              <option value="">Selecione uma área</option>
-              {areas.map((area) => (
-                <option key={area.id} value={area.id}>
-                  {area.name}
-                </option>
-              ))}
-            </select>
-            {errors.areaId && (
-              <p className="mt-1 text-sm text-red-600">{errors.areaId.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Pedido Mínimo (R$)
+              Coordenada Y
             </label>
             <input
               type="number"
-              step="0.01"
-              {...register('minimumOrder', { valueAsNumber: true })}
+              {...register('coordinates.y', { valueAsNumber: true })}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              placeholder="0.00"
+              placeholder="0"
             />
-            {errors.minimumOrder && (
-              <p className="mt-1 text-sm text-red-600">{errors.minimumOrder.message}</p>
-            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Observações
+              Descrição
             </label>
             <textarea
-              {...register('notes')}
+              {...register('description')}
               rows={3}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
               placeholder="Informações adicionais sobre a mesa..."

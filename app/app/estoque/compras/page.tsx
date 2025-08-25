@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { getPurchases, Purchase } from '@/lib/api';
-import PurchasesTable from '@/src/components/purchases/PurchasesTable';
-import PurchaseForm from '@/src/components/purchases/PurchaseForm';
+import PurchasesTable from '@/components/purchases/PurchasesTable';
+import PurchaseForm from '@/components/purchases/PurchaseForm';
 
 export default function ComprasPage() {
     const { user } = useAuthStore();

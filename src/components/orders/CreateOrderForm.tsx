@@ -5,21 +5,21 @@ import { useForm, useFieldArray, SubmitHandler, Controller } from 'react-hook-fo
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { getMenuItems, getTables, createOrder, getCustomers, MenuItemResponse, TableResponse, OrderResponse, CustomerResponse } from '@/lib/api';
-import { X, Plus, Trash2, UserSearch } from 'lucide-react';
+import { X, Plus, Trash2, User } from 'lucide-react';
 
 const orderItemSchema = z.object({
     productId: z.string().uuid('Selecione um produto.'),
     quantity: z.preprocess((val) => parseInt(z.string().parse(val) || '1', 10), z.number().min(1, 'A quantidade deve ser pelo menos 1.')),
-    unitPrice: z.number(),
-    productName: z.string(),
     notes: z.string().optional(),
 });
 
 const orderSchema = z.object({
-    tableId: z.string().uuid().optional().nullable(),
-    customerId: z.string().uuid().optional().nullable(),
+    tableId: z.string().uuid(),
+    customerId: z.string().uuid(),
     customerName: z.string().optional(), // Para clientes de balcão não cadastrados
-    orderItems: z.array(orderItemSchema).min(1, 'Adicione pelo menos um item ao pedido.'),
+    items: z.array(orderItemSchema).min(1, 'Adicione pelo menos um item ao pedido.'),
+    status: z.enum(['PENDING', 'PREPARING', 'READY', 'DELIVERED', 'CANCELLED']).default('PENDING'),
+    priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).default('MEDIUM'),
     notes: z.string().optional(),
     discount: z.preprocess((val) => parseFloat(z.string().parse(val) || '0'), z.number().min(0).optional()),
 });
@@ -40,14 +40,14 @@ export function CreateOrderForm({ onClose, onSave }: CreateOrderFormProps) {
     const { control, register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<OrderFormData>({
         resolver: zodResolver(orderSchema),
         defaultValues: {
-            orderItems: [],
+            items: [],
             discount: 0,
         },
     });
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: "orderItems"
+        name: "items"
     });
 
     useEffect(() => {
@@ -56,11 +56,11 @@ export function CreateOrderForm({ onClose, onSave }: CreateOrderFormProps) {
                 const [prods, tbls, custs] = await Promise.all([
                     getMenuItems(),
                     getTables(),
-                    getCustomers({ limit: 100 }) // Busca clientes
+                    getCustomers() // Busca clientes
                 ]);
                 setProducts(prods);
-                setTables(tbls.filter(t => t.status === 'available'));
-                setCustomers(custs.customers);
+                setTables(tbls.filter(t => t.isAvailable));
+                setCustomers(custs);
             } catch (error) {
                 setApiError('Falha ao carregar dados necessários.');
             }
@@ -79,14 +79,30 @@ export function CreateOrderForm({ onClose, onSave }: CreateOrderFormProps) {
         }
     };
 
-    const orderItems = watch('orderItems');
-    const subtotal = orderItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+    const orderItems = watch('items');
+    const subtotal = orderItems.reduce((sum, item) => {
+        const product = products.find(p => p.id === item.productId);
+        return sum + ((product?.price || 0) * item.quantity);
+    }, 0);
     const discount = watch('discount') || 0;
     const total = subtotal - discount;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-start z-50 p-4 pt-10">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div
+            className="fixed inset-0 flex justify-center items-start p-4 pt-10 transition-all duration-200"
+            style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                backdropFilter: 'blur(4px)',
+                zIndex: 9999,
+            }}
+        >
+            <div
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transition-all duration-200"
+                style={{
+                    backgroundColor: 'white',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                }}
+            >
                 <form onSubmit={handleSubmit(onSubmit)} id="order-form">
                     <div className="flex justify-between items-center p-4 border-b">
                         <h2 className="text-xl font-bold">Novo Pedido</h2>
@@ -98,7 +114,7 @@ export function CreateOrderForm({ onClose, onSave }: CreateOrderFormProps) {
                                 <label htmlFor="tableId" className="block text-sm font-medium text-gray-700">Mesa</label>
                                 <select {...register('tableId')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                                     <option value="">Nenhuma</option>
-                                    {tables.map(t => <option key={t.id} value={t.id}>Mesa {t.number}</option>)}
+                                    {tables.map(t => <option key={t.id} value={t.id}>Mesa {t.name}</option>)}
                                 </select>
                             </div>
                             <div>
@@ -115,7 +131,7 @@ export function CreateOrderForm({ onClose, onSave }: CreateOrderFormProps) {
                                 <button type="button" onClick={() => {
                                     const firstProduct = products[0];
                                     if (firstProduct) {
-                                        append({ productId: firstProduct.id, quantity: 1, unitPrice: firstProduct.price, productName: firstProduct.name });
+                                        append({ productId: firstProduct.id, quantity: 1 });
                                     }
                                 }} className="text-sm text-blue-600 flex items-center"><Plus size={16} className="mr-1" /> Adicionar item</button>
                             </div>
@@ -124,12 +140,11 @@ export function CreateOrderForm({ onClose, onSave }: CreateOrderFormProps) {
                                     <div className="flex items-center space-x-2">
                                         <Controller
                                             control={control}
-                                            name={`orderItems.${index}.productId`}
+                                            name={`items.${index}.productId`}
                                             render={({ field }) => (
                                                 <select {...field} onChange={(e) => {
                                                     const product = products.find(p => p.id === e.target.value);
-                                                    setValue(`orderItems.${index}.unitPrice`, product?.price || 0);
-                                                    setValue(`orderItems.${index}.productName`, product?.name || '');
+
                                                     field.onChange(e);
                                                 }} className="flex-grow block w-full rounded-md border-gray-300 shadow-sm">
                                                     <option value="">Selecione um produto...</option>
@@ -137,14 +152,14 @@ export function CreateOrderForm({ onClose, onSave }: CreateOrderFormProps) {
                                                 </select>
                                             )}
                                         />
-                                        <input type="number" {...register(`orderItems.${index}.quantity`)} defaultValue={1} className="w-20 block rounded-md border-gray-300 shadow-sm" />
-                                        <span className="w-24 text-right pr-2">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(orderItems[index]?.unitPrice * orderItems[index]?.quantity || 0)}</span>
+                                        <input type="number" {...register(`items.${index}.quantity`)} defaultValue={1} className="w-20 block rounded-md border-gray-300 shadow-sm" />
+                                        <span className="w-24 text-right pr-2">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((products.find(p => p.id === orderItems[index]?.productId)?.price || 0) * orderItems[index]?.quantity || 0)}</span>
                                         <button type="button" onClick={() => remove(index)}><Trash2 size={18} className="text-red-500" /></button>
                                     </div>
-                                    <textarea {...register(`orderItems.${index}.notes`)} placeholder="Observações do item..." rows={1} className="mt-2 w-full text-sm rounded-md border-gray-300 shadow-sm" />
+                                    <textarea {...register(`items.${index}.notes`)} placeholder="Observações do item..." rows={1} className="mt-2 w-full text-sm rounded-md border-gray-300 shadow-sm" />
                                 </div>
                             ))}
-                            {errors.orderItems && <p className="text-red-500 text-xs mt-1">{errors.orderItems.message || errors.orderItems.root?.message}</p>}
+                            {errors.items && <p className="text-red-500 text-xs mt-1">{errors.items.message || errors.items.root?.message}</p>}
                         </div>
 
                         <div className="border-t pt-4 space-y-2">

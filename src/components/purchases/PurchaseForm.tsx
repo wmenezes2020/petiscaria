@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Purchase, PurchaseItem, Supplier, Ingredient, createPurchase, updatePurchase, getSuppliers, getIngredients } from '@/lib/api';
+import { Purchase, PurchaseItem, Supplier, IngredientResponse, createPurchase, updatePurchase, getSuppliers, getIngredients } from '@/lib/api';
 
 const purchaseItemSchema = z.object({
     ingredientId: z.string().uuid('Selecione um ingrediente'),
@@ -12,7 +12,7 @@ const purchaseItemSchema = z.object({
         (val) => parseFloat(z.string().parse(val) || '0'),
         z.number().min(0.01, 'Quantidade deve ser maior que zero')
     ),
-    unitPrice: z.preprocess(
+    unitCost: z.preprocess(
         (val) => parseFloat(z.string().parse(val) || '0'),
         z.number().min(0.01, 'Preço unitário deve ser maior que zero')
     ),
@@ -43,7 +43,7 @@ export default function PurchaseForm({ purchase, onClose, onSuccess }: PurchaseF
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-    const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+    const [ingredients, setIngredients] = useState<IngredientResponse[]>([]);
 
     const {
         register,
@@ -59,7 +59,7 @@ export default function PurchaseForm({ purchase, onClose, onSuccess }: PurchaseF
             supplierId: '',
             purchaseDate: new Date().toISOString().split('T')[0],
             expectedDeliveryDate: '',
-            items: [{ ingredientId: '', quantity: 0, unitPrice: 0, notes: '' }],
+            items: [{ ingredientId: '', quantity: 0, unitCost: 0, notes: '' }],
             notes: '',
             taxAmount: 0,
         },
@@ -84,7 +84,7 @@ export default function PurchaseForm({ purchase, onClose, onSuccess }: PurchaseF
                 getIngredients(),
             ]);
             setSuppliers(suppliersResponse.data);
-            setIngredients(ingredientsResponse.data);
+            setIngredients(ingredientsResponse);
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
         }
@@ -111,7 +111,7 @@ export default function PurchaseForm({ purchase, onClose, onSuccess }: PurchaseF
     };
 
     const addItem = () => {
-        append({ ingredientId: '', quantity: 0, unitPrice: 0, notes: '' });
+        append({ ingredientId: '', quantity: 0, unitCost: 0, notes: '' });
     };
 
     const removeItem = (index: number) => {
@@ -122,7 +122,7 @@ export default function PurchaseForm({ purchase, onClose, onSuccess }: PurchaseF
 
     const calculateSubtotal = () => {
         const items = watch('items');
-        return items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+        return items.reduce((sum, item) => sum + (item.quantity * item.unitCost), 0);
     };
 
     const calculateTotal = () => {
@@ -284,13 +284,13 @@ export default function PurchaseForm({ purchase, onClose, onSuccess }: PurchaseF
                                             <input
                                                 type="number"
                                                 step="0.01"
-                                                {...register(`items.${index}.unitPrice`)}
+                                                {...register(`items.${index}.unitCost`)}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 placeholder="0.00"
                                             />
-                                            {errors.items?.[index]?.unitPrice && (
+                                            {errors.items?.[index]?.unitCost && (
                                                 <p className="text-red-500 text-sm mt-1">
-                                                    {errors.items[index]?.unitPrice?.message}
+                                                    {errors.items[index]?.unitCost?.message}
                                                 </p>
                                             )}
                                         </div>

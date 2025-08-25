@@ -236,25 +236,144 @@ import { TableStatus } from '@/components/tables/TableStatusBadge';
 
 export interface TableResponse {
   id: string;
-  number: number;
+  name: string;
   capacity: number;
-  status: TableStatus;
-  area: {
-    id: string;
-    name: string;
+  areaId: string;
+  locationId: string;
+  isActive: boolean;
+  isAvailable: boolean;
+  description?: string;
+  coordinates?: {
+    x: number;
+    y: number;
   };
+  companyId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export const getTables = async (area?: string): Promise<TableResponse[]> => {
-  const params = new URLSearchParams();
-  if (area) {
-    params.append('area', area);
+export const getTables = async (): Promise<TableResponse[]> => {
+  try {
+    return await apiClient.get<TableResponse[]>('/tables');
+  } catch (error) {
+    console.error('Erro ao buscar mesas:', error);
+    throw error;
   }
-  
-  const response = await apiClient.get<{ tables: TableResponse[]; total: number }>(
-    `/tables?${params.toString()}`
-  );
-  return response.tables;
+};
+
+export const createTable = async (data: { 
+  name: string; 
+  capacity: number; 
+  areaId: string; 
+  locationId: string; 
+  isActive: boolean; 
+  isAvailable: boolean; 
+  description?: string; 
+  coordinates?: {
+    x: number;
+    y: number;
+  }; 
+}): Promise<TableResponse> => {
+  try {
+    return await apiClient.post<TableResponse>('/tables', data);
+  } catch (error) {
+    console.error('Erro ao criar mesa:', error);
+    throw error;
+  }
+};
+
+export const updateTable = async (id: string, data: { 
+  name?: string; 
+  capacity?: number; 
+  areaId?: string; 
+  locationId?: string; 
+  isActive?: boolean; 
+  isAvailable?: boolean; 
+  description?: string; 
+  coordinates?: {
+    x: number;
+    y: number;
+  }; 
+}): Promise<TableResponse> => {
+  try {
+    return await apiClient.patch<TableResponse>(`/tables/${id}`, data);
+  } catch (error) {
+    console.error('Erro ao atualizar mesa:', error);
+    throw error;
+  }
+};
+
+export const deleteTable = async (id: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/tables/${id}`);
+  } catch (error) {
+    console.error('Erro ao excluir mesa:', error);
+    throw error;
+  }
+};
+
+export interface LocationResponse {
+  id: string;
+  name: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+}
+
+export interface AreaResponse {
+  id: string;
+  name: string;
+  description?: string;
+  locationId: string;
+  companyId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const getLocations = async (): Promise<LocationResponse[]> => {
+  try {
+    return await apiClient.get<LocationResponse[]>('/locations');
+  } catch (error) {
+    console.error('Erro ao buscar localizações:', error);
+    throw error;
+  }
+};
+
+export const getAreas = async (): Promise<AreaResponse[]> => {
+  try {
+    return await apiClient.get<AreaResponse[]>('/areas');
+  } catch (error) {
+    console.error('Erro ao buscar áreas:', error);
+    throw error;
+  }
+};
+
+export const createArea = async (data: { name: string; description?: string; locationId: string }): Promise<AreaResponse> => {
+  try {
+    return await apiClient.post<AreaResponse>('/areas', data);
+  } catch (error) {
+    console.error('Erro ao criar área:', error);
+    throw error;
+  }
+};
+
+export const updateArea = async (id: string, data: { name: string; description?: string; locationId?: string }): Promise<AreaResponse> => {
+  try {
+    return await apiClient.patch<AreaResponse>(`/areas/${id}`, data);
+  } catch (error) {
+    console.error('Erro ao atualizar área:', error);
+    throw error;
+  }
+};
+
+export const deleteArea = async (id: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/areas/${id}`);
+  } catch (error) {
+    console.error('Erro ao excluir área:', error);
+    throw error;
+  }
 };
 
 
@@ -266,17 +385,29 @@ export const getTables = async (area?: string): Promise<TableResponse[]> => {
 import { OrderStatus } from '@/components/orders/OrderStatusBadge';
 
 export interface OrderItem {
-    id: string;
-    name: string;
-    quantity: number;
-    price: number;
+  id: string;
+  productId: string;
+  productName?: string;
+  name: string;
+  quantity: number;
+  price: number;
+  notes?: string;
 }
 
 export interface OrderResponse {
   id: string;
-  status: OrderStatus;
+  customerId: string;
+  customerName?: string;
+  tableId: string;
+  tableName?: string;
+  status: 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
   total: number;
+  estimatedTime: number;
+  notes?: string;
   createdAt: string;
+  updatedAt: string;
+  companyId: string;
   table: {
     number: number;
   } | null;
@@ -299,22 +430,64 @@ export interface GetOrdersParams {
   sortOrder?: 'asc' | 'desc';
 }
 
-export const getOrders = async (params: GetOrdersParams = {}): Promise<PaginatedOrdersResponse> => {
-  const query = new URLSearchParams();
-  if (params.page) query.append('page', String(params.page));
-  if (params.limit) query.append('limit', String(params.limit));
-  if (params.status) query.append('status', params.status);
-  if (params.sortBy) query.append('sortBy', params.sortBy);
-  if (params.sortOrder) query.append('sortOrder', params.sortOrder);
-
-  const response = await apiClient.get<PaginatedOrdersResponse>(
-    `/orders?${query.toString()}`
-  );
-  return response;
+export const getOrders = async (): Promise<OrderResponse[]> => {
+  try {
+    return await apiClient.get<OrderResponse[]>('/orders');
+  } catch (error) {
+    console.error('Erro ao buscar pedidos:', error);
+    throw error;
+  }
 };
 
-export const createOrder = async (orderData: any): Promise<OrderResponse> => {
-  return apiClient.post<OrderResponse>('/orders', orderData);
+export const createOrder = async (data: { 
+  customerId: string; 
+  tableId: string; 
+  items: Array<{
+    productId: string;
+    quantity: number;
+    notes?: string;
+  }>;
+  status: 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  estimatedTime?: number;
+  notes?: string;
+}): Promise<OrderResponse> => {
+  try {
+    return await apiClient.post<OrderResponse>('/orders', data);
+  } catch (error) {
+    console.error('Erro ao criar pedido:', error);
+    throw error;
+  }
+};
+
+export const updateOrder = async (id: string, data: { 
+  customerId?: string; 
+  tableId?: string; 
+  items?: Array<{
+    productId: string;
+    quantity: number;
+    notes?: string;
+  }>;
+  status?: 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+  estimatedTime?: number;
+  notes?: string;
+}): Promise<OrderResponse> => {
+  try {
+    return await apiClient.patch<OrderResponse>(`/orders/${id}`, data);
+  } catch (error) {
+    console.error('Erro ao atualizar pedido:', error);
+    throw error;
+  }
+};
+
+export const deleteOrder = async (id: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/orders/${id}`);
+  } catch (error) {
+    console.error('Erro ao excluir pedido:', error);
+    throw error;
+  }
 };
 
 
@@ -347,18 +520,37 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
 // Menu API
 // =============================================
 
-export interface CategoryResponse {
-    id: string;
-    name: string;
+export interface MenuItemResponse {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  categoryId: string;
+  imageUrl?: string;
+  isAvailable: boolean;
+  preparationTime?: number;
+  allergens?: string[];
+  nutritionalInfo?: {
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+  };
+  companyId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface MenuItemResponse {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    category: CategoryResponse;
-    active: boolean;
+export interface MenuCategoryResponse {
+  id: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  isActive: boolean;
+  sortOrder: number;
+  companyId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const getMenuItems = async (): Promise<MenuItemResponse[]> => {
@@ -379,24 +571,45 @@ export const getMenuItems = async (): Promise<MenuItemResponse[]> => {
                 name: 'Hambúrguer Artesanal',
                 description: 'Hambúrguer com carne 180g, queijo, alface, tomate e molho especial',
                 price: 25.90,
-                category: { id: '1', name: 'Lanches' },
-                active: true
+                categoryId: '1',
+                imageUrl: 'https://via.placeholder.com/150',
+                isAvailable: true,
+                preparationTime: 10,
+                allergens: ['Glúten'],
+                nutritionalInfo: { calories: 200, protein: 10, carbs: 10, fat: 5 },
+                companyId: '1',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             },
             {
                 id: '2', 
                 name: 'Batata Frita',
                 description: 'Porção de batata frita crocante',
                 price: 12.50,
-                category: { id: '2', name: 'Acompanhamentos' },
-                active: true
+                categoryId: '2',
+                imageUrl: 'https://via.placeholder.com/150',
+                isAvailable: true,
+                preparationTime: 5,
+                allergens: [],
+                nutritionalInfo: { calories: 150, protein: 5, carbs: 15, fat: 10 },
+                companyId: '1',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             },
             {
                 id: '3',
                 name: 'Refrigerante Lata',
                 description: 'Coca-Cola, Pepsi ou Guaraná 350ml',
                 price: 5.00,
-                category: { id: '3', name: 'Bebidas' },
-                active: true
+                categoryId: '3',
+                imageUrl: 'https://via.placeholder.com/150',
+                isAvailable: true,
+                preparationTime: 0,
+                allergens: [],
+                nutritionalInfo: { calories: 100, protein: 0, carbs: 25, fat: 0 },
+                companyId: '1',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             }
         ];
     }
@@ -408,11 +621,6 @@ export const createMenuItem = async (data: Partial<MenuItemResponse>): Promise<M
 
 export const updateMenuItem = async (id: string, data: Partial<MenuItemResponse>): Promise<MenuItemResponse> => {
     return apiClient.patch<MenuItemResponse>(`/products/${id}`, data);
-};
-
-export const getCategories = async (): Promise<CategoryResponse[]> => {
-    const response = await apiClient.get<{ categories: CategoryResponse[] }>('/categories');
-    return response.categories;
 };
 
 export const deleteMenuItem = async (id: string): Promise<void> => {
@@ -753,73 +961,94 @@ export const getActiveSuppliers = async (): Promise<Supplier[]> => {
 export interface CustomerResponse {
   id: string;
   name: string;
-  email?: string;
-  phone?: string;
-  cpf?: string;
+  email: string;
+  phone: string;
+  cpf: string;
   address?: string;
   city?: string;
   state?: string;
   zipCode?: string;
   birthDate?: string;
   notes?: string;
+  isActive: boolean;
+  preferences?: {
+    favoriteProducts?: string[];
+    dietaryRestrictions?: string[];
+    allergies?: string[];
+  };
   companyId: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateCustomerRequest {
-  name: string;
-  email?: string;
-  phone?: string;
-  cpf?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  birthDate?: string;
-  notes?: string;
-}
-
-export interface UpdateCustomerRequest extends Partial<CreateCustomerRequest> {}
-
-export interface CustomerQueryParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-}
-
-export interface CustomersResponse {
-  data: CustomerResponse[];
-  total: number;
-}
-
-export const getCustomers = async (params: CustomerQueryParams = {}): Promise<CustomersResponse> => {
-  const queryParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined) queryParams.append(key, value.toString());
-  });
-  
-  const response = await api.get(`/customers?${queryParams.toString()}`);
-  return response.data;
+export const getCustomers = async (): Promise<CustomerResponse[]> => {
+  try {
+    return await apiClient.get<CustomerResponse[]>('/customers');
+  } catch (error) {
+    console.error('Erro ao buscar clientes:', error);
+    throw error;
+  }
 };
 
-export const getCustomer = async (id: string): Promise<CustomerResponse> => {
-  const response = await api.get(`/customers/${id}`);
-  return response.data;
+export const createCustomer = async (data: { 
+  name: string; 
+  email: string; 
+  phone: string; 
+  cpf: string; 
+  address?: string; 
+  city?: string; 
+  state?: string; 
+  zipCode?: string; 
+  birthDate?: string; 
+  notes?: string; 
+  isActive: boolean; 
+  preferences?: {
+    favoriteProducts?: string[];
+    dietaryRestrictions?: string[];
+    allergies?: string[];
+  }; 
+}): Promise<CustomerResponse> => {
+  try {
+    return await apiClient.post<CustomerResponse>('/customers', data);
+  } catch (error) {
+    console.error('Erro ao criar cliente:', error);
+    throw error;
+  }
 };
 
-export const createCustomer = async (data: CreateCustomerRequest): Promise<CustomerResponse> => {
-  const response = await api.post('/customers', data);
-  return response.data;
-};
-
-export const updateCustomer = async (id: string, data: UpdateCustomerRequest): Promise<CustomerResponse> => {
-  const response = await api.patch(`/customers/${id}`, data);
-  return response.data;
+export const updateCustomer = async (id: string, data: { 
+  name?: string; 
+  email?: string; 
+  phone?: string; 
+  cpf?: string; 
+  address?: string; 
+  city?: string; 
+  state?: string; 
+  zipCode?: string; 
+  birthDate?: string; 
+  notes?: string; 
+  isActive?: boolean; 
+  preferences?: {
+    favoriteProducts?: string[];
+    dietaryRestrictions?: string[];
+    allergies?: string[];
+  }; 
+}): Promise<CustomerResponse> => {
+  try {
+    return await apiClient.patch<CustomerResponse>(`/customers/${id}`, data);
+  } catch (error) {
+    console.error('Erro ao atualizar cliente:', error);
+    throw error;
+  }
 };
 
 export const deleteCustomer = async (id: string): Promise<void> => {
-  await api.delete(`/customers/${id}`);
+  try {
+    await apiClient.delete(`/customers/${id}`);
+  } catch (error) {
+    console.error('Erro ao excluir cliente:', error);
+    throw error;
+  }
 };
 
 // Purchases API
@@ -923,6 +1152,222 @@ export const cancelPurchase = async (id: string): Promise<Purchase> => {
 
 
 export default api;
+
+export interface CategoryResponse {
+  id: string;
+  name: string;
+  description?: string;
+  image?: string;
+  color?: string;
+  order: number;
+  isActive: boolean;
+  isVisible: boolean;
+  parentId?: string;
+  parentName?: string;
+  companyId: string;
+  createdAt: string;
+  updatedAt: string;
+  productCount?: number;
+  children?: CategoryResponse[];
+}
+
+export const getCategories = async (): Promise<CategoryResponse[]> => {
+  try {
+    return await apiClient.get<CategoryResponse[]>('/categories');
+  } catch (error) {
+    console.error('Erro ao buscar categorias:', error);
+    throw error;
+  }
+};
+
+export const createCategory = async (data: { 
+  name: string; 
+  description?: string; 
+  image?: string; 
+  isActive: boolean; 
+  order: number; 
+}): Promise<CategoryResponse> => {
+  try {
+    return await apiClient.post<CategoryResponse>('/categories', data);
+  } catch (error) {
+    console.error('Erro ao criar categoria:', error);
+    throw error;
+  }
+};
+
+export const updateCategory = async (id: string, data: { 
+  name?: string; 
+  description?: string; 
+  image?: string; 
+  isActive?: boolean; 
+  order?: number; 
+}): Promise<CategoryResponse> => {
+  try {
+    return await apiClient.patch<CategoryResponse>(`/categories/${id}`, data);
+  } catch (error) {
+    console.error('Erro ao atualizar categoria:', error);
+    throw error;
+  }
+};
+
+export const deleteCategory = async (id: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/categories/${id}`);
+  } catch (error) {
+    console.error('Erro ao excluir categoria:', error);
+    throw error;
+  }
+};
+
+export interface ProductResponse {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  categoryId: string;
+  imageUrl?: string;
+  isAvailable: boolean;
+  preparationTime?: number;
+  allergens?: string[];
+  nutritionalInfo?: {
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+  };
+  companyId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const getProducts = async (): Promise<{ products: ProductResponse[]; total: number }> => {
+  try {
+    return await apiClient.get<{ products: ProductResponse[]; total: number }>('/products');
+  } catch (error) {
+    console.error('Erro ao buscar produtos:', error);
+    throw error;
+  }
+};
+
+export const createProduct = async (data: { 
+  name: string; 
+  description?: string; 
+  price: number; 
+  categoryId: string; 
+  imageUrl?: string; 
+  isAvailable: boolean; 
+  preparationTime?: number; 
+  allergens?: string[]; 
+  nutritionalInfo?: {
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+  }; 
+}): Promise<ProductResponse> => {
+  try {
+    return await apiClient.post<ProductResponse>('/products', data);
+  } catch (error) {
+    console.error('Erro ao criar produto:', error);
+    throw error;
+  }
+};
+
+export const updateProduct = async (id: string, data: { 
+  name?: string; 
+  description?: string; 
+  price?: number; 
+  categoryId?: string; 
+  imageUrl?: string; 
+  isAvailable?: boolean; 
+  preparationTime?: number; 
+  allergens?: string[]; 
+  nutritionalInfo?: {
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+  }; 
+}): Promise<ProductResponse> => {
+  try {
+    return await apiClient.patch<ProductResponse>(`/products/${id}`, data);
+  } catch (error) {
+    console.error('Erro ao atualizar produto:', error);
+    throw error;
+  }
+};
+
+export const deleteProduct = async (id: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/products/${id}`);
+  } catch (error) {
+    console.error('Erro ao excluir produto:', error);
+    throw error;
+  }
+};
+
+export interface PaymentResponse {
+  id: string;
+  orderId: string;
+  amount: number;
+  method: 'CASH' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'PIX' | 'TRANSFER';
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+  transactionId?: string;
+  notes?: string;
+  companyId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const getPayments = async (): Promise<PaymentResponse[]> => {
+  try {
+    return await apiClient.get<PaymentResponse[]>('/payments');
+  } catch (error) {
+    console.error('Erro ao buscar pagamentos:', error);
+    throw error;
+  }
+};
+
+export const createPayment = async (data: { 
+  orderId: string; 
+  amount: number; 
+  method: 'CASH' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'PIX' | 'TRANSFER';
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+  transactionId?: string;
+  notes?: string;
+}): Promise<PaymentResponse> => {
+  try {
+    return await apiClient.post<PaymentResponse>('/payments', data);
+  } catch (error) {
+    console.error('Erro ao criar pagamento:', error);
+    throw error;
+  }
+};
+
+export const updatePayment = async (id: string, data: { 
+  orderId?: string; 
+  amount?: number; 
+  method?: 'CASH' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'PIX' | 'TRANSFER';
+  status?: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+  transactionId?: string;
+  notes?: string;
+}): Promise<PaymentResponse> => {
+  try {
+    return await apiClient.patch<PaymentResponse>(`/payments/${id}`, data);
+  } catch (error) {
+    console.error('Erro ao atualizar pagamento:', error);
+    throw error;
+  }
+};
+
+export const deletePayment = async (id: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/payments/${id}`);
+  } catch (error) {
+    console.error('Erro ao excluir pagamento:', error);
+    throw error;
+  }
+};
 
 
 

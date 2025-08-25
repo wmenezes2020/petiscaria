@@ -6,16 +6,15 @@ const badgeVariants = cva(
   {
     variants: {
       status: {
-        OPEN: 'bg-blue-100 text-blue-800',
+        PENDING: 'bg-blue-100 text-blue-800',
         PREPARING: 'bg-yellow-100 text-yellow-800',
         READY: 'bg-orange-100 text-orange-800',
         DELIVERED: 'bg-indigo-100 text-indigo-800',
-        CLOSED: 'bg-green-100 text-green-800',
         CANCELLED: 'bg-red-100 text-red-800',
       },
     },
     defaultVariants: {
-      status: 'OPEN',
+      status: 'PENDING',
     },
   }
 );
@@ -27,18 +26,17 @@ interface OrderStatusBadgeProps extends VariantProps<typeof badgeVariants> {
 }
 
 const statusTranslations: Record<OrderStatus & string, string> = {
-    OPEN: 'Aberto',
-    PREPARING: 'Em Preparo',
-    READY: 'Pronto',
-    DELIVERED: 'Entregue',
-    CLOSED: 'Fechado',
-    CANCELLED: 'Cancelado',
+  PENDING: 'Pendente',
+  PREPARING: 'Em Preparo',
+  READY: 'Pronto',
+  DELIVERED: 'Entregue',
+  CANCELLED: 'Cancelado',
 }
 
 export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
   return (
     <span className={badgeVariants({ status })}>
-      {statusTranslations[status || 'OPEN']}
+      {statusTranslations[status || 'PENDING']}
     </span>
   );
 }

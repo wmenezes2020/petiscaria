@@ -11,17 +11,16 @@ const productSchema = z.object({
     description: z.string().optional(),
     price: z.preprocess((val) => parseFloat(z.string().parse(val)), z.number().min(0, 'O preço deve ser positivo.')),
     categoryId: z.string().uuid('Selecione uma categoria válida.'),
-    type: z.enum(['food', 'drink', 'dessert', 'side_dish', 'combo']).default('food'),
-    status: z.enum(['active', 'inactive', 'out_of_stock', 'discontinued']).default('active'),
-    sku: z.string().optional(),
-    costPrice: z.preprocess((val) => val ? parseFloat(z.string().parse(val)) : 0, z.number().min(0).optional()),
-    stockQuantity: z.preprocess((val) => parseInt(z.string().parse(val), 10), z.number().int().min(0).default(0)),
-    minStockLevel: z.preprocess((val) => parseInt(z.string().parse(val), 10), z.number().int().min(0).default(0)),
-    preparationTime: z.preprocess((val) => parseInt(z.string().parse(val), 10), z.number().int().min(0).optional()),
-    isVegetarian: z.boolean().default(false),
-    isVegan: z.boolean().default(false),
-    isGlutenFree: z.boolean().default(false),
-    isSpicy: z.boolean().default(false),
+    imageUrl: z.string().optional(),
+    isAvailable: z.boolean().default(true),
+    preparationTime: z.preprocess((val) => val ? parseInt(z.string().parse(val), 10) : undefined, z.number().int().min(0).optional()),
+    allergens: z.array(z.string()).optional(),
+    nutritionalInfo: z.object({
+        calories: z.number().optional(),
+        protein: z.number().optional(),
+        carbs: z.number().optional(),
+        fat: z.number().optional(),
+    }).optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -43,18 +42,17 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
             name: product?.name || '',
             description: product?.description || '',
             price: product?.price || 0,
-            categoryId: product?.category.id || '',
-            type: product?.type || 'food',
-            status: product?.status || 'active',
-            sku: product?.sku || '',
-            costPrice: product?.costPrice || 0,
-            stockQuantity: product?.stockQuantity || 0,
-            minStockLevel: product?.minStockLevel || 0,
+            categoryId: product?.categoryId || '',
+            imageUrl: product?.imageUrl || '',
+            isAvailable: product?.isAvailable ?? true,
             preparationTime: product?.preparationTime || 0,
-            isVegetarian: product?.isVegetarian || false,
-            isVegan: product?.isVegan || false,
-            isGlutenFree: product?.isGlutenFree || false,
-            isSpicy: product?.isSpicy || false,
+            allergens: product?.allergens || [],
+            nutritionalInfo: product?.nutritionalInfo || {
+                calories: 0,
+                protein: 0,
+                carbs: 0,
+                fat: 0,
+            },
         },
     });
 
@@ -134,91 +132,25 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                     </div>
                     <div style={{ display: activeTab === 'stock' ? 'block' : 'none' }}>
                         <div className="space-y-4">
-                            <div>
-                                <label htmlFor="sku" className="block text-sm font-medium text-gray-700">SKU (Código)</label>
-                                <input type="text" {...register('sku')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-                                {errors.sku && <p className="text-red-500 text-xs mt-1">{errors.sku.message}</p>}
-                            </div>
-                            <div>
-                                <label htmlFor="costPrice" className="block text-sm font-medium text-gray-700">Preço de Custo (R$)</label>
-                                <input type="number" step="0.01" {...register('costPrice')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-                                {errors.costPrice && <p className="text-red-500 text-xs mt-1">{errors.costPrice.message}</p>}
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="stockQuantity" className="block text-sm font-medium text-gray-700">Qtd. em Estoque</label>
-                                    <input type="number" {...register('stockQuantity')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-                                    {errors.stockQuantity && <p className="text-red-500 text-xs mt-1">{errors.stockQuantity.message}</p>}
-                                </div>
-                                <div>
-                                    <label htmlFor="minStockLevel" className="block text-sm font-medium text-gray-700">Nível Mínimo</label>
-                                    <input type="number" {...register('minStockLevel')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-                                    {errors.minStockLevel && <p className="text-red-500 text-xs mt-1">{errors.minStockLevel.message}</p>}
-                                </div>
-                            </div>
+                            <p className="text-gray-500 text-sm">Funcionalidades de estoque serão implementadas em breve.</p>
                         </div>
                     </div>
                     <div style={{ display: activeTab === 'details' ? 'block' : 'none' }}>
                         <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="type" className="block text-sm font-medium text-gray-700">Tipo de Produto</label>
-                                    <select {...register('type')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                                        <option value="food">Comida</option>
-                                        <option value="drink">Bebida</option>
-                                        <option value="dessert">Sobremesa</option>
-                                        <option value="side_dish">Acompanhamento</option>
-                                        <option value="combo">Combo</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status de Venda</label>
-                                    <select {...register('status')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                                        <option value="active">Ativo</option>
-                                        <option value="inactive">Inativo</option>
-                                        <option value="out_of_stock">Fora de Estoque</option>
-                                        <option value="discontinued">Descontinuado</option>
-                                    </select>
-                                </div>
-                            </div>
                             <div>
                                 <label htmlFor="preparationTime" className="block text-sm font-medium text-gray-700">Tempo de Preparo (minutos)</label>
                                 <input type="number" {...register('preparationTime')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="Ex: 15" />
                                 {errors.preparationTime && <p className="text-red-500 text-xs mt-1">{errors.preparationTime.message}</p>}
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-                                <div className="flex items-start">
-                                    <div className="flex items-center h-5">
-                                        <input {...register('isVegetarian')} id="isVegetarian" type="checkbox" className="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300 rounded" />
-                                    </div>
-                                    <div className="ml-3 text-sm">
-                                        <label htmlFor="isVegetarian" className="font-medium text-gray-700">Vegetariano</label>
-                                    </div>
-                                </div>
-                                <div className="flex items-start">
-                                    <div className="flex items-center h-5">
-                                        <input {...register('isVegan')} id="isVegan" type="checkbox" className="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300 rounded" />
-                                    </div>
-                                    <div className="ml-3 text-sm">
-                                        <label htmlFor="isVegan" className="font-medium text-gray-700">Vegano</label>
-                                    </div>
-                                </div>
-                                <div className="flex items-start">
-                                    <div className="flex items-center h-5">
-                                        <input {...register('isGlutenFree')} id="isGlutenFree" type="checkbox" className="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300 rounded" />
-                                    </div>
-                                    <div className="ml-3 text-sm">
-                                        <label htmlFor="isGlutenFree" className="font-medium text-gray-700">Sem Glúten</label>
-                                    </div>
-                                </div>
-                                <div className="flex items-start">
-                                    <div className="flex items-center h-5">
-                                        <input {...register('isSpicy')} id="isSpicy" type="checkbox" className="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300 rounded" />
-                                    </div>
-                                    <div className="ml-3 text-sm">
-                                        <label htmlFor="isSpicy" className="font-medium text-gray-700">Picante</label>
-                                    </div>
-                                </div>
+                            <div>
+                                <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700">URL da Imagem</label>
+                                <input type="url" {...register('imageUrl')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="https://..." />
+                            </div>
+                            <div>
+                                <label htmlFor="isAvailable" className="flex items-center">
+                                    <input {...register('isAvailable')} type="checkbox" className="mr-2 rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
+                                    <span className="text-sm font-medium text-gray-700">Disponível para venda</span>
+                                </label>
                             </div>
                         </div>
                     </div>

@@ -39,7 +39,10 @@ export default function SupplierForm({ supplier, onClose, onSuccess }: SupplierF
         reset,
     } = useForm<SupplierFormData>({
         resolver: zodResolver(supplierSchema),
-        defaultValues: supplier || {
+        defaultValues: supplier ? {
+            ...supplier,
+            status: (supplier.status === 'ACTIVE' || supplier.status === 'INACTIVE') ? supplier.status : 'ACTIVE'
+        } : {
             name: '',
             email: '',
             phone: '',
@@ -56,7 +59,10 @@ export default function SupplierForm({ supplier, onClose, onSuccess }: SupplierF
 
     useEffect(() => {
         if (supplier) {
-            reset(supplier);
+            reset({
+                ...supplier,
+                status: (supplier.status === 'ACTIVE' || supplier.status === 'INACTIVE') ? supplier.status : 'ACTIVE'
+            });
         }
     }, [supplier, reset]);
 

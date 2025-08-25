@@ -12,8 +12,8 @@ interface KdsTicketProps {
 }
 
 const calculateTimeDiff = (startTime: string) => {
-    const diff = new Date().getTime() - new Date(startTime).getTime();
-    return Math.floor(diff / 60000); // difference in minutes
+  const diff = new Date().getTime() - new Date(startTime).getTime();
+  return Math.floor(diff / 60000); // difference in minutes
 }
 
 export function KdsTicket({ order, onUpdateStatus }: KdsTicketProps) {
@@ -21,17 +21,19 @@ export function KdsTicket({ order, onUpdateStatus }: KdsTicketProps) {
 
   useEffect(() => {
     const timer = setInterval(() => {
-        setTimeElapsed(calculateTimeDiff(order.createdAt));
+      setTimeElapsed(calculateTimeDiff(order.createdAt));
     }, 60000); // update every minute
     return () => clearInterval(timer);
   }, [order.createdAt]);
 
   const getNextAction = () => {
     switch (order.status) {
-      case 'OPEN':
+      case 'PENDING':
         return { text: 'Iniciar Preparo', nextStatus: 'PREPARING' as OrderStatus };
       case 'PREPARING':
         return { text: 'Marcar como Pronto', nextStatus: 'READY' as OrderStatus };
+      case 'READY':
+        return { text: 'Marcar como Entregue', nextStatus: 'DELIVERED' as OrderStatus };
       default:
         return null;
     }
@@ -67,11 +69,11 @@ export function KdsTicket({ order, onUpdateStatus }: KdsTicketProps) {
       {/* Action Button */}
       {action && (
         <div className="p-3 bg-gray-50">
-          <button 
+          <button
             onClick={() => onUpdateStatus(order.id, action.nextStatus)}
             className="w-full py-3 px-4 bg-blue-600 text-white font-bold text-lg rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
           >
-            {action.text} <ArrowRight size={22} className="ml-3"/>
+            {action.text} <ArrowRight size={22} className="ml-3" />
           </button>
         </div>
       )}

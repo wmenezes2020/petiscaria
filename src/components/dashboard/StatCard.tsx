@@ -41,17 +41,17 @@ const iconVariants = cva('rounded-lg p-3 text-white',
 interface StatCardProps extends VariantProps<typeof cardVariants> {
   title: string;
   value: string | number;
-  icon: LucideIcon;
+  icon: React.ReactNode;
   footer?: string;
 }
 
-export function StatCard({ title, value, icon: Icon, color, footer }: StatCardProps) {
+export function StatCard({ title, value, icon, color, footer }: StatCardProps) {
   return (
     <div className={cardVariants({ color })}>
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-600">{title}</h3>
         <div className={iconVariants({ color })}>
-          <Icon className="h-6 w-6" />
+          {icon}
         </div>
       </div>
       <div className="mt-4">

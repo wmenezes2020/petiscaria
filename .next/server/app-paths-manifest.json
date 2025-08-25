@@ -1,8 +1,19 @@
 {
+  "/_not-found": "app/_not-found.js",
   "/kds/page": "app/kds/page.js",
   "/login/page": "app/login/page.js",
-  "/app/dashboard/page": "app/app/dashboard/page.js",
+  "/page": "app/page.js",
+  "/register/page": "app/register/page.js",
+  "/app/cardapio/page": "app/app/cardapio/page.js",
+  "/app/estoque/compras/page": "app/app/estoque/compras/page.js",
   "/app/clientes/page": "app/app/clientes/page.js",
+  "/app/estoque/fornecedores/page": "app/app/estoque/fornecedores/page.js",
+  "/app/dashboard/page": "app/app/dashboard/page.js",
+  "/app/financeiro/page": "app/app/financeiro/page.js",
   "/app/pedidos/page": "app/app/pedidos/page.js",
-  "/app/mesas/page": "app/app/mesas/page.js"
+  "/app/relatorios/page": "app/app/relatorios/page.js",
+  "/app/mesas/page": "app/app/mesas/page.js",
+  "/app/configuracoes/page": "app/app/configuracoes/page.js",
+  "/app/estoque/page": "app/app/estoque/page.js",
+  "/app/page": "app/app/page.js"
 }

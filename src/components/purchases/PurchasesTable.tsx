@@ -118,19 +118,12 @@ export default function PurchasesTable({ purchases, onEdit, onRefresh }: Purchas
                                 {formatDate(purchase.purchaseDate)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                                <div>
-                                    <div className="text-sm font-medium text-gray-900">
-                                        {purchase.supplier?.name || 'N/A'}
-                                    </div>
-                                    {purchase.supplier?.contactName && (
-                                        <div className="text-sm text-gray-500">
-                                            {purchase.supplier.contactName}
-                                        </div>
-                                    )}
+                                <div className="text-sm font-medium text-gray-900">
+                                    {purchase.supplierId || 'N/A'}
                                 </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {formatCurrency(purchase.totalAmount)}
+                                {formatCurrency(purchase.total)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 {getStatusBadge(purchase.status)}

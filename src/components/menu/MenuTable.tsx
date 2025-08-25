@@ -72,12 +72,12 @@ export function MenuTable({ menuItems: initialMenuItems, onEdit }: MenuTableProp
                   {item.name}
                 </th>
                 <td className="px-6 py-4">
-                  <CategoryPill name={item.category.name} />
+                  <CategoryPill name={item.categoryId} />
                 </td>
                 <td className="px-6 py-4 font-semibold">{formatCurrency(item.price)}</td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${item.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                    {item.active ? 'Ativo' : 'Inativo'}
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${item.isAvailable ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {item.isAvailable ? 'Disponível' : 'Indisponível'}
                   </span>
                 </td>
                 {canManageMenu && (

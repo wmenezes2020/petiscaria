@@ -8,17 +8,20 @@ import { useAuthStore } from '@/stores/authStore';
 import { CreateOrderForm } from '@/components/orders/CreateOrderForm';
 
 export default function PedidosPage() {
-  const [ordersData, setOrdersData] = useState<PaginatedOrdersResponse | null>(null);
+  const [ordersData, setOrdersData] = useState<OrderResponse[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const { user } = useAuthStore();
+  const { user, checkAuthStatus } = useAuthStore();
 
   useEffect(() => {
+    // Verificar status de autenticação
+    checkAuthStatus();
+
     const fetchOrders = async () => {
       try {
         setIsLoading(true);
-        const data = await getOrders({ page: 1, limit: 15 });
+        const data = await getOrders();
         setOrdersData(data);
       } catch (e) {
         console.error('Failed to fetch orders:', e);
@@ -29,18 +32,14 @@ export default function PedidosPage() {
     };
 
     fetchOrders();
-  }, []);
+  }, []); // Removido checkAuthStatus para evitar dependência circular
 
   const canManageOrders = user?.role === 'admin' || user?.role === 'manager' || user?.role === 'waiter';
 
   const handleSaveOrder = (newOrder: OrderResponse) => {
     // Adicionar o novo pedido ao início da lista
     if (ordersData) {
-      setOrdersData({
-        ...ordersData,
-        orders: [newOrder, ...ordersData.orders],
-        total: ordersData.total + 1,
-      });
+      setOrdersData([newOrder, ...ordersData]);
     }
   };
 
@@ -80,7 +79,7 @@ export default function PedidosPage() {
       </div>
 
       {/* Orders Table */}
-      <OrdersTable ordersData={ordersData} />
+      <OrdersTable orders={ordersData} />
 
       {isFormOpen && (
         <CreateOrderForm

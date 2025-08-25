@@ -24,7 +24,7 @@ export function useKdsSocket() {
     });
 
     newSocket.on('kitchen_orders', (initialOrders: OrderResponse[]) => {
-      setOpenOrders(initialOrders.filter(o => o.status === 'OPEN'));
+      setOpenOrders(initialOrders.filter(o => o.status === 'PENDING'));
       setPreparingOrders(initialOrders.filter(o => o.status === 'PREPARING'));
     });
     
@@ -38,9 +38,9 @@ export function useKdsSocket() {
       setPreparingOrders(prev => prev.filter(o => o.id !== updatedOrder.id));
 
       // Adiciona o pedido à lista correta
-      if (updatedOrder.status === 'OPEN') {
-        setOpenOrders(prev => [updatedOrder, ...prev]);
-      } else if (updatedOrder.status === 'PREPARING') {
+              if (updatedOrder.status === 'PENDING') {
+            setOpenOrders(prev => [updatedOrder, ...prev]);
+        } else if (updatedOrder.status === 'PREPARING') {
         setPreparingOrders(prev => [updatedOrder, ...prev]);
       }
       // Adicionar lógica para 'READY' se houver uma coluna para isso

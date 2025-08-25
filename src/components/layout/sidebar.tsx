@@ -80,8 +80,18 @@ export function Sidebar() {
           </div>
           {!isCollapsed && (
             <div>
-              <h1 className="text-xl font-bold text-white">Petiscaria</h1>
-              <p className="text-xs text-blue-100 font-medium">Sistema de Gestão</p>
+              <h1
+                className="text-xl font-bold drop-shadow-sm"
+                style={{ color: 'white' }}
+              >
+                Petiscaria
+              </h1>
+              <p
+                className="text-xs font-medium drop-shadow-sm"
+                style={{ color: 'rgba(219, 234, 254, 1)' }}
+              >
+                Sistema de Gestão
+              </p>
             </div>
           )}
         </div>

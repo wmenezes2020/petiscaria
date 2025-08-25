@@ -96,7 +96,7 @@ export default function RelatoriosPage() {
               selectsEnd
               startDate={startDate}
               endDate={endDate}
-              minDate={startDate}
+              minDate={startDate || undefined}
               dateFormat="dd/MM/yyyy"
               locale={ptBR}
               className="p-2 border rounded-md"

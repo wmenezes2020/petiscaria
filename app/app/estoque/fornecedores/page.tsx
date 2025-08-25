@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { getSuppliers, Supplier } from '@/lib/api';
-import SuppliersTable from '@/src/components/suppliers/SuppliersTable';
-import SupplierForm from '@/src/components/suppliers/SupplierForm';
+import SuppliersTable from '@/components/suppliers/SuppliersTable';
+import SupplierForm from '@/components/suppliers/SupplierForm';
 
 export default function FornecedoresPage() {
     const { user } = useAuthStore();

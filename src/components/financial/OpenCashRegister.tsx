@@ -39,7 +39,7 @@ export function OpenCashRegister({
     onPageChange
 }: OpenCashRegisterProps) {
     const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
-    const [movementFormType, setMovementFormType] = useState<MovementType | null>(null);
+    const [movementFormType, setMovementFormType] = useState<MovementType.DEPOSIT | MovementType.WITHDRAWAL | MovementType.EXPENSE | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
 
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<CloseFormData>({

@@ -9,12 +9,11 @@ import { useAuthStore } from '@/stores/authStore';
 import { OrderDetailsModal } from './OrderDetailsModal';
 
 interface OrdersTableProps {
-  ordersData: PaginatedOrdersResponse;
+  orders: OrderResponse[];
 }
 
-export function OrdersTable({ ordersData }: OrdersTableProps) {
-  const [orders, setOrders] = useState(ordersData.orders);
-  const [total, setTotal] = useState(ordersData.total);
+export function OrdersTable({ orders }: OrdersTableProps) {
+  const [total] = useState(orders.length);
   const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
   const { user } = useAuthStore();
 
