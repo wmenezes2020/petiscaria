@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { getOrders, PaginatedOrdersResponse, OrderResponse } from '@/lib/api';
+import { useEffect, useState } from 'react';
+import { getOrders, OrderResponse } from '@/lib/api';
 import { OrdersTable } from '@/components/orders/OrdersTable';
 import { PlusCircle, Filter } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';

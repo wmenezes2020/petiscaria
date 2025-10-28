@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { getCurrentCashRegister, CashRegisterResponse, CashMovementResponse, getCashMovements } from '@/lib/api';
+import { useEffect, useState } from 'react';
+import { getCashMovements, getCurrentCashRegister, CashMovementResponse, CashRegisterResponse } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 import { ClosedCashRegister } from '@/components/financial/ClosedCashRegister';
 import { OpenCashRegister } from '@/components/financial/OpenCashRegister';

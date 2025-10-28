@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getTables, TableResponse, getAreas, AreaResponse, getLocations, LocationResponse, createTable, updateTable } from '@/lib/api';
 import { TableCard } from '@/components/tables/TableCard';
 import { TableFormModal } from '@/components/tables/TableFormModal';
@@ -74,7 +74,7 @@ export default function MesasPage() {
       filtered = filtered.filter(table => {
         const area = areas.find(a => a.id === table.areaId);
         return table.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               (area && area.name.toLowerCase().includes(searchTerm.toLowerCase()));
+          (area && area.name.toLowerCase().includes(searchTerm.toLowerCase()));
       });
     }
 

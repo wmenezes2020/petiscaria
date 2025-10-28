@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { getUsers, UserResponse } from '@/lib/api';
 import { InviteUserForm } from '@/components/settings/InviteUserForm';
 import { UsersTable } from '@/components/settings/UsersTable';
@@ -11,16 +14,23 @@ import { PaymentsManagement } from '@/components/settings/PaymentsManagement';
 import { InventoryManagement } from '@/components/settings/InventoryManagement';
 import { ReportsPanel } from '@/components/reports/ReportsPanel';
 
-export default async function ConfiguracoesPage() {
-  let users: UserResponse[] = [];
-  let error = null;
+export default function ConfiguracoesPage() {
+  const [users, setUsers] = useState<UserResponse[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  try {
-    users = await getUsers();
-  } catch (e) {
-    console.error('Failed to fetch users:', e);
-    error = 'Não foi possível carregar a lista de usuários.';
-  }
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const fetchedUsers = await getUsers();
+        setUsers(fetchedUsers);
+      } catch (e) {
+        console.error('Failed to fetch users:', e);
+        setError('Não foi possível carregar a lista de usuários.');
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   return (
     <div>

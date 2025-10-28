@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getDashboardStats } from '@/lib/api';
+import { getDashboardStats, DashboardStats } from '@/lib/api';
 import { StatCard } from '@/components/dashboard/StatCard';
 import {
   DollarSign,

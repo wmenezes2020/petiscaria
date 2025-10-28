@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getMenuItems, MenuItemResponse } from '@/lib/api';
 import { MenuTable } from '@/components/menu/MenuTable';
 import { PlusCircle, Filter } from 'lucide-react';

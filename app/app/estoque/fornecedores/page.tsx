@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { getSuppliers, Supplier } from '@/lib/api';
 import SuppliersTable from '@/components/suppliers/SuppliersTable';
