@@ -6,6 +6,7 @@ RUN apk add --no-cache \
     python3 \
     make \
     g++ \
+    wget \
     && rm -rf /var/cache/apk/*
 
 # Definir diretório de trabalho
