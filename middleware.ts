@@ -14,8 +14,8 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Rotas que não devem ser interceptadas pelo middleware
-  const publicRoutes = ['/login', '/register', '/', '/kds'];
-  const isPublicRoute = publicRoutes.includes(pathname);
+  const publicRoutes = ['/login', '/register', '/api'];
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route)) || pathname === '/';
   
   // Se for rota pública, permitir acesso direto
   if (isPublicRoute) {
@@ -51,21 +51,19 @@ export function middleware(request: NextRequest) {
 
   // Se não estiver autenticado, redireciona para o login
   if (!isAuthenticated) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   // Se estiver autenticado, verificar permissões
   const allowedRoutes = userRole ? roleRoutes[userRole.toLowerCase()] || [] : [];
   
-  // Permitir acesso ao dashboard para todos os perfis autenticados
-  if (pathname === '/app/dashboard' || allowedRoutes.some(route => pathname.startsWith(route))) {
+  // Permitir acesso ao dashboard e rotas do app para todos os perfis autenticados
+  if (pathname.startsWith('/app') || allowedRoutes.some(route => pathname.startsWith(route))) {
     return NextResponse.next();
   }
   
-  // Se não tiver permissão, redireciona para o dashboard
-  console.log(`Acesso negado para ${pathname} - Usuário: ${userRole} - Rotas permitidas:`, allowedRoutes);
-  return NextResponse.redirect(new URL('/app/dashboard', request.url));
-
   return NextResponse.next();
 }
 

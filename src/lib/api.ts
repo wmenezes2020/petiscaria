@@ -191,38 +191,42 @@ export interface DashboardStats {
   // ticketMedio: number;
 }
 
-export const getDashboardStats = async (): Promise<DashboardStats> => {
-  try {
-    // Executa as chamadas em paralelo para maior eficiência
-    const [orderStats, tableStats] = await Promise.all([
-      apiClient.get<OrderStats>('/orders/stats/summary'),
-      apiClient.get<TableStats>('/tables/stats'),
-    ]);
+export interface DashboardData {
+  period: {
+    start: string;
+    end: string;
+    type: string;
+  };
+  kpis: {
+    totalRevenue: { label: string; value: number; unit?: string; };
+    totalOrders: { label: string; value: number; unit?: string; };
+    averageOrderValue: { label: string; value: number; unit?: string; };
+    totalCustomers: { label: string; value: number; unit?: string; };
+    activeTables: { label: string; value: number; unit?: string; };
+    pendingOrders: { label: string; value: number; unit?: string; };
+    lowStockProducts: { label: string; value: number; unit?: string; };
+    topSellingProduct: { label: string; value: number; unit?: string; };
+  };
+  comparison: {
+    revenueChange: number;
+    ordersChange: number;
+    customersChange: number;
+    averageOrderValueChange: number;
+  };
+  tables: {
+    recentOrders: any[];
+    topCustomers: any[];
+    lowStockAlerts: any[];
+  };
+}
 
-    return {
-      orderStats,
-      tableStats,
-    };
+export const getDashboardStats = async (): Promise<DashboardData> => {
+  try {
+    const data = await apiClient.get<DashboardData>('/dashboard');
+    return data;
   } catch (error) {
-    console.warn('Erro ao buscar dados do dashboard, usando dados mock:', error);
-    
-    // Retornar dados mock em caso de erro
-    return {
-      orderStats: {
-        open: 5,
-        preparing: 3,
-        ready: 2,
-        delivered: 15,
-        closed: 20,
-        cancelled: 1,
-        total: 46,
-      },
-      tableStats: {
-        occupied: 8,
-        available: 12,
-        total: 20,
-      },
-    };
+    console.error('Erro ao buscar dados do dashboard:', error);
+    throw error;
   }
 };
 

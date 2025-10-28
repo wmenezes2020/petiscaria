@@ -1,111 +1,51 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getDashboardStats, DashboardStats } from '@/lib/api';
-import { StatCard } from '@/components/dashboard/StatCard';
-import {
-  DollarSign,
-  ShoppingBasket,
-  Users,
-  ClipboardList,
-} from 'lucide-react';
+import { getDashboardStats, DashboardData } from '@/lib/api';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [stats, setStats] = useState<any>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Funções de navegação para os botões
-  const handleNewOrder = () => {
-    router.push('/app/pedidos');
-  };
-
-  const handleNewTable = () => {
-    router.push('/app/mesas');
-  };
-
-  const handleViewReports = () => {
-    router.push('/app/relatorios');
-  };
-
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
         const data = await getDashboardStats();
-        setStats(data);
-      } catch (e) {
-        console.error('Failed to fetch dashboard stats:', e);
-        setError('Não foi possível carregar os dados do dashboard.');
+        setDashboardData(data);
+        setError(null);
+      } catch (e: any) {
+        console.error('Failed to fetch dashboard data:', e);
+        setError(e.response?.data?.message || 'Não foi possível carregar os dados do dashboard.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchStats();
+    fetchData();
   }, []);
 
-  // Calcular dados reais baseados na API
-  const calculateDashboardData = () => {
-    if (!stats) return null;
-
-    const { orderStats, tableStats } = stats;
-
-    // Calcular faturamento estimado (baseado nos pedidos)
-    const estimatedRevenue = orderStats.total * 45.50; // Ticket médio estimado
-    const todayRevenue = new Intl.NumberFormat('pt-BR', {
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
-    }).format(estimatedRevenue);
-
-    // Calcular taxa de ocupação
-    const occupancyRate = tableStats.total > 0
-      ? Math.round((tableStats.occupied / tableStats.total) * 100)
-      : 0;
-
-    // Calcular ticket médio
-    const averageTicket = orderStats.total > 0
-      ? new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }).format(estimatedRevenue / orderStats.total)
-      : 'R$ 0,00';
-
-    return {
-      todayRevenue,
-      revenueChange: '+12.3%',
-      activeOrders: orderStats.open + orderStats.preparing,
-      preparingOrders: orderStats.preparing,
-      occupiedTables: tableStats.occupied,
-      totalTables: tableStats.total,
-      occupancyRate,
-      averageTicket,
-      totalOrders: orderStats.total,
-      completedOrders: orderStats.delivered + orderStats.closed,
-      recentActivity: [
-        { id: 1, type: 'order', action: 'Pedido #1024 finalizado', detail: 'Mesa 05', time: 'Há 2 minutos', status: 'success' },
-        { id: 2, type: 'order', action: 'Novo pedido #1025', detail: 'Mesa 12', time: 'Há 5 minutos', status: 'info' },
-        { id: 3, type: 'table', action: 'Mesa 08 ocupada', detail: '4 pessoas', time: 'Há 8 minutos', status: 'warning' },
-        { id: 4, type: 'payment', action: 'Pagamento recebido', detail: 'R$ 89,50', time: 'Há 12 minutos', status: 'success' },
-      ]
-    };
+    }).format(value);
   };
 
-  const dashboardData = calculateDashboardData();
+  const formatPercent = (value: number) => {
+    const sign = value >= 0 ? '+' : '';
+    return `${sign}${value.toFixed(1)}%`;
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600 mx-auto mb-6"></div>
-            <div className="absolute inset-0 w-16 h-16 border-4 border-purple-200 rounded-full animate-ping mx-auto opacity-20"></div>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Carregando Dashboard</h3>
-          <p className="text-gray-600">Buscando dados em tempo real...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando dados do dashboard...</p>
         </div>
       </div>
     );
@@ -113,209 +53,204 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="w-20 h-20 bg-gradient-to-br from-red-100 to-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Ops! Algo deu errado</h3>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-200"
-          >
-            Tentar Novamente
-          </button>
-        </div>
+      <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg mb-6">
+        <h3 className="font-semibold">Erro</h3>
+        <p>{error}</p>
       </div>
     );
   }
 
+  if (!dashboardData) {
+    return null;
+  }
+
+  const { kpis, comparison } = dashboardData;
+
   return (
-    <div className="min-h-screen">
-      {/* Header Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-8">
-        <div className="px-8 py-6">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">Visão geral do seu negócio</p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => router.push('/app/pedidos')}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+          >
+            Ver Pedidos
+          </button>
+          <button
+            onClick={() => router.push('/app/mesas')}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+          >
+            Ver Mesas
+          </button>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Total de Pedidos */}
+        <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-              <p className="text-gray-600">Visão geral do seu estabelecimento</p>
+              <p className="text-sm text-gray-600">Total de Pedidos</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">
+                {kpis.totalOrders.value}
+              </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-xs text-gray-500 font-medium">Última atualização</p>
-                <p className="text-sm font-semibold text-gray-900">{new Date().toLocaleTimeString('pt-BR')}</p>
-              </div>
-              <button className="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
+            <div className="bg-blue-100 p-3 rounded-lg">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
             </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            {comparison.ordersChange >= 0 ? (
+              <span className="text-green-600 font-semibold">
+                {formatPercent(comparison.ordersChange)} vs período anterior
+              </span>
+            ) : (
+              <span className="text-red-600 font-semibold">
+                {formatPercent(comparison.ordersChange)} vs período anterior
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Receita Total */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Receita Total</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">
+                {formatCurrency(kpis.totalRevenue.value)}
+              </p>
+            </div>
+            <div className="bg-green-100 p-3 rounded-lg">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            {comparison.revenueChange >= 0 ? (
+              <span className="text-green-600 font-semibold">
+                {formatPercent(comparison.revenueChange)} vs período anterior
+              </span>
+            ) : (
+              <span className="text-red-600 font-semibold">
+                {formatPercent(comparison.revenueChange)} vs período anterior
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Total de Clientes */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Total de Clientes</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">
+                {kpis.totalCustomers.value}
+              </p>
+            </div>
+            <div className="bg-purple-100 p-3 rounded-lg">
+              <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            {comparison.customersChange >= 0 ? (
+              <span className="text-green-600 font-semibold">
+                {formatPercent(comparison.customersChange)} vs período anterior
+              </span>
+            ) : (
+              <span className="text-red-600 font-semibold">
+                {formatPercent(comparison.customersChange)} vs período anterior
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Ticket Médio */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Ticket Médio</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">
+                {formatCurrency(kpis.averageOrderValue.value)}
+              </p>
+            </div>
+            <div className="bg-orange-100 p-3 rounded-lg">
+              <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            {comparison.averageOrderValueChange >= 0 ? (
+              <span className="text-green-600 font-semibold">
+                {formatPercent(comparison.averageOrderValueChange)} vs período anterior
+              </span>
+            ) : (
+              <span className="text-red-600 font-semibold">
+                {formatPercent(comparison.averageOrderValueChange)} vs período anterior
+              </span>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="space-y-8">
-        {/* Stats Cards com dados reais */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-all duration-300 group hover:scale-105 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/10 to-emerald-500/10 rounded-full -mr-16 -mt-16"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-6">
-                <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl group-hover:scale-110 transition-transform shadow-lg">
-                  <DollarSign className="h-7 w-7 text-white" />
-                </div>
-                <span className="text-sm font-bold text-green-600 bg-green-100 px-3 py-1 rounded-full">
-                  {dashboardData?.revenueChange || '+12.3%'}
-                </span>
-              </div>
-              <h3 className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wide">Faturamento do Dia</h3>
-              <p className="text-3xl font-black text-gray-900 mb-2">{dashboardData?.todayRevenue || 'R$ 0,00'}</p>
-              <p className="text-sm text-green-600 font-semibold">vs. ontem</p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-all duration-300 group hover:scale-105 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-indigo-500/10 rounded-full -mr-16 -mt-16"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-6">
-                <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl group-hover:scale-110 transition-transform shadow-lg">
-                  <ClipboardList className="h-7 w-7 text-white" />
-                </div>
-                <span className="text-sm font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
-                  Ativos
-                </span>
-              </div>
-              <h3 className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wide">Pedidos Ativos</h3>
-              <p className="text-3xl font-black text-gray-900 mb-2">{dashboardData?.activeOrders || 0}</p>
-              <p className="text-sm text-blue-600 font-semibold">{dashboardData?.preparingOrders || 0} em preparo</p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-all duration-300 group hover:scale-105 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/10 to-violet-500/10 rounded-full -mr-16 -mt-16"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-6">
-                <div className="p-4 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl group-hover:scale-110 transition-transform shadow-lg">
-                  <Users className="h-7 w-7 text-white" />
-                </div>
-                <span className="text-sm font-bold text-purple-600 bg-purple-100 px-3 py-1 rounded-full">
-                  {dashboardData?.occupancyRate || 0}%
-                </span>
-              </div>
-              <h3 className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wide">Mesas Ocupadas</h3>
-              <p className="text-3xl font-black text-gray-900 mb-2">{dashboardData?.occupiedTables || 0}/{dashboardData?.totalTables || 0}</p>
-              <p className="text-sm text-purple-600 font-semibold">Taxa de ocupação</p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-all duration-300 group hover:scale-105 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/10 to-red-500/10 rounded-full -mr-16 -mt-16"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-6">
-                <div className="p-4 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl group-hover:scale-110 transition-transform shadow-lg">
-                  <ShoppingBasket className="h-7 w-7 text-white" />
-                </div>
-                <span className="text-sm font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded-full">
-                  Dia
-                </span>
-              </div>
-              <h3 className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wide">Ticket Médio</h3>
-              <p className="text-3xl font-black text-gray-900 mb-2">{dashboardData?.averageTicket || 'R$ 0,00'}</p>
-              <p className="text-sm text-orange-600 font-semibold">por pedido</p>
-            </div>
-          </div>
+      {/* Additional Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <p className="text-sm text-gray-600">Pedidos Pendentes</p>
+          <p className="text-2xl font-bold text-gray-900 mt-2">
+            {kpis.pendingOrders.value}
+          </p>
         </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <p className="text-sm text-gray-600">Mesas Ativas</p>
+          <p className="text-2xl font-bold text-gray-900 mt-2">
+            {kpis.activeTables.value}
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <p className="text-sm text-gray-600">Produtos com Estoque Baixo</p>
+          <p className="text-2xl font-bold text-gray-900 mt-2">
+            {kpis.lowStockProducts.value}
+          </p>
+        </div>
+      </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Activity */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <svg className="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  Atividade Recente
-                </h2>
-              </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  {dashboardData?.recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-3 h-3 rounded-full ${activity.status === 'success' ? 'bg-green-500' :
-                          activity.status === 'warning' ? 'bg-yellow-500' :
-                            'bg-blue-500'
-                          }`}></div>
-                        <div>
-                          <span className="text-sm font-medium text-gray-900">{activity.action}</span>
-                          <p className="text-xs text-gray-600">{activity.detail}</p>
-                        </div>
-                      </div>
-                      <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full border border-gray-200">
-                        {activity.time}
-                      </span>
-                    </div>
-                  ))}
+      {/* Recent Orders */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Pedidos Recentes</h2>
+        </div>
+        <div className="p-6">
+          {dashboardData.tables.recentOrders.length > 0 ? (
+            <div className="space-y-4">
+              {dashboardData.tables.recentOrders.slice(0, 5).map((order: any) => (
+                <div key={order.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                  <div>
+                    <p className="font-medium text-gray-900">Pedido #{order.orderNumber}</p>
+                    <p className="text-sm text-gray-600">{order.customerName}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-gray-900">{formatCurrency(order.total)}</p>
+                    <p className="text-sm text-gray-600">{order.status}</p>
+                  </div>
                 </div>
-                <div className="mt-6 pt-4 border-t border-gray-200">
-                  <button className="w-full text-center text-sm text-orange-600 hover:text-orange-700 font-medium py-2 px-4 rounded-lg hover:bg-orange-50 transition-colors">
-                    Ver todas as atividades
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <svg className="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Ações Rápidas
-                </h2>
-              </div>
-              <div className="p-6">
-                <div className="space-y-3">
-                  <button
-                    onClick={handleNewOrder}
-                    className="w-full flex items-center justify-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    <span>Novo Pedido</span>
-                  </button>
-                  <button
-                    onClick={handleNewTable}
-                    className="w-full flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span>Nova Mesa</span>
-                  </button>
-                  <button
-                    onClick={handleViewReports}
-                    className="w-full flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span>Relatório</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          ) : (
+            <p className="text-gray-600 text-center py-8">Nenhum pedido recente</p>
+          )}
         </div>
       </div>
     </div>
