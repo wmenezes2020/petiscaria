@@ -19,11 +19,11 @@ COPY tailwind.config.js ./
 COPY postcss.config.js ./
 
 # Instalar dependências
-RUN npm ci --only=production && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 # Stage de desenvolvimento (opcional)
 FROM base AS development
-RUN npm ci
+RUN npm install
 COPY . .
 RUN npm run build
 

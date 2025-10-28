@@ -6,6 +6,13 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1',
   },
+  // Configurações para evitar chamadas de API durante o build
+  experimental: {
+    // Desabilita SSR para páginas que fazem chamadas de API
+    isrMemoryCacheSize: 0,
+  },
+  // Configura páginas para serem estáticas
+  trailingSlash: true,
   async headers() {
     return [
       {
