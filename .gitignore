@@ -107,3 +107,5 @@ Desktop.ini
 
 # Arquivos de configuração do ESLint
 .eslintcache
+
+.next/

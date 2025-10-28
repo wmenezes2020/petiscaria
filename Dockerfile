@@ -18,8 +18,8 @@ COPY next.config.js ./
 COPY tailwind.config.js ./
 COPY postcss.config.js ./
 
-# Instalar dependências
-RUN npm install --omit=dev && npm cache clean --force
+# Instalar dependências (incluindo dev para build)
+RUN npm ci && npm cache clean --force
 
 # Stage de desenvolvimento (opcional)
 FROM base AS development
