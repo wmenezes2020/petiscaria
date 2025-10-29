@@ -81,10 +81,10 @@ export function LocationsManagement() {
         setEditingLocation(location);
         setFormData({
             name: location.name,
-            address: location.address || '',
-            city: location.city || '',
-            state: location.state || '',
-            zipCode: location.zipCode || '',
+            address: location.address ? location.address : '',
+            city: location.city ? location.city : '',
+            state: location.state ? location.state : '',
+            zipCode: location.zipCode ? location.zipCode : '',
             phone: location.phone || '',
             email: location.email || ''
         });
