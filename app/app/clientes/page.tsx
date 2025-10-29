@@ -20,10 +20,12 @@ export default function ClientesPage() {
       try {
         setIsLoading(true);
         const data = await getCustomers();
-        setCustomers(data);
+        // Garantir que data é um array
+        setCustomers(Array.isArray(data) ? data : []);
       } catch (error: any) {
         console.error('Failed to fetch customers:', error);
         toast.error('Erro ao carregar clientes');
+        setCustomers([]);
       } finally {
         setIsLoading(false);
       }
@@ -32,8 +34,9 @@ export default function ClientesPage() {
     fetchCustomers();
   }, []);
 
-  // Filter customers
-  const filteredCustomers = customers.filter(customer => {
+  // Filter customers - garantir que customers é um array
+  const customersList = Array.isArray(customers) ? customers : [];
+  const filteredCustomers = customersList.filter(customer => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.phone.includes(searchTerm) ||
