@@ -57,10 +57,17 @@ export function OrdersManagement() {
                 getTables(),
                 getProducts()
             ]);
-            setOrders(ordersData);
-            setCustomers(customersData);
-            setTables(tablesData);
-            setProducts(productsData.products || productsData);
+            
+            // Garantir que todos são arrays
+            setOrders(Array.isArray(ordersData) ? ordersData : []);
+            setCustomers(Array.isArray(customersData) ? customersData : []);
+            setTables(Array.isArray(tablesData) ? tablesData : []);
+            
+            // Products pode vir como objeto { products: [] }
+            const productsArray = Array.isArray(productsData) 
+                ? productsData 
+                : (Array.isArray((productsData as any)?.products) ? (productsData as any).products : []);
+            setProducts(productsArray);
         } catch (err) {
             setError('Erro ao carregar dados');
             console.error('Erro ao buscar dados:', err);
@@ -70,7 +77,10 @@ export function OrdersManagement() {
     };
 
     const filterOrders = () => {
-        let filtered = orders;
+        // Garantir que orders é um array
+        const ordersList = Array.isArray(orders) ? orders : [];
+        
+        let filtered = ordersList;
 
         if (searchTerm.trim()) {
             filtered = filtered.filter(order =>
