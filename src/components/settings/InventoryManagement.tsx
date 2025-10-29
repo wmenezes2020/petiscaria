@@ -53,7 +53,9 @@ export function InventoryManagement() {
     };
 
     const filterProducts = () => {
-        let filtered = products;
+        // Garantir que products é um array
+        const productsList = Array.isArray(products) ? products : [];
+        let filtered = productsList;
 
         if (searchTerm.trim()) {
             filtered = filtered.filter(product =>
@@ -256,7 +258,7 @@ export function InventoryManagement() {
                             {searchTerm || stockFilter !== 'ALL' ? 'Nenhum produto encontrado para os filtros aplicados' : 'Nenhum produto cadastrado'}
                         </li>
                     ) : (
-                        filteredProducts.map((product) => {
+                        (Array.isArray(filteredProducts) ? filteredProducts : []).map((product) => {
                             const stockStatus = getStockStatus(product);
                             const stockTrend = getStockTrend(product);
                             const TrendIcon = stockTrend.icon;

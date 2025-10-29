@@ -34,11 +34,14 @@ export function AreasManagement() {
                 getAreas(),
                 getLocations()
             ]);
-            setAreas(areasData);
-            setLocations(locationsData);
+            // Garantir que os dados são arrays
+            setAreas(Array.isArray(areasData) ? areasData : []);
+            setLocations(Array.isArray(locationsData) ? locationsData : []);
         } catch (err) {
             setError('Erro ao carregar dados');
             console.error('Erro ao buscar dados:', err);
+            setAreas([]);
+            setLocations([]);
         } finally {
             setIsLoading(false);
         }
@@ -158,7 +161,7 @@ export function AreasManagement() {
                             Nenhuma área cadastrada
                         </li>
                     ) : (
-                        areas.map((area) => (
+                        (Array.isArray(areas) ? areas : []).map((area) => (
                             <li key={area.id} className="px-6 py-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center">
