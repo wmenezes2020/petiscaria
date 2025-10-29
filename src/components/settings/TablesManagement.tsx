@@ -49,9 +49,11 @@ export function TablesManagement() {
                 getAreas(),
                 getLocations()
             ]);
-            setTables(tablesData);
-            setAreas(areasData);
-            setLocations(locationsData);
+            
+            // Garantir que todos são arrays
+            setTables(Array.isArray(tablesData) ? tablesData : []);
+            setAreas(Array.isArray(areasData) ? areasData : []);
+            setLocations(Array.isArray(locationsData) ? locationsData : []);
         } catch (err) {
             setError('Erro ao carregar dados');
             console.error('Erro ao buscar dados:', err);
@@ -232,7 +234,7 @@ export function TablesManagement() {
                             Nenhuma mesa cadastrada
                         </li>
                     ) : (
-                        tables.map((table) => (
+                        (Array.isArray(tables) ? tables : []).map((table) => (
                             <li key={table.id} className="px-6 py-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center">
