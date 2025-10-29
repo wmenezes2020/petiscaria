@@ -76,7 +76,7 @@ export function CustomersManagement() {
     const filterCustomers = () => {
         // Garantir que customers é um array
         const customersList = Array.isArray(customers) ? customers : [];
-        
+
         if (!searchTerm.trim()) {
             setFilteredCustomers(customersList);
             return;
@@ -308,8 +308,8 @@ export function CustomersManagement() {
                                             <div className="flex items-center">
                                                 <h4 className="text-sm font-medium text-gray-900">{customer.name}</h4>
                                                 <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.isActive
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-red-100 text-red-800'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-red-100 text-red-800'
                                                     }`}>
                                                     {customer.isActive ? 'Ativo' : 'Inativo'}
                                                 </span>
@@ -355,8 +355,8 @@ export function CustomersManagement() {
                                         <button
                                             onClick={() => toggleActiveStatus(customer)}
                                             className={`px-3 py-1 text-xs font-medium rounded-md ${customer.isActive
-                                                    ? 'text-red-700 bg-red-100 hover:bg-red-200'
-                                                    : 'text-green-700 bg-green-100 hover:bg-green-200'
+                                                ? 'text-red-700 bg-red-100 hover:bg-red-200'
+                                                : 'text-green-700 bg-green-100 hover:bg-green-200'
                                                 }`}
                                         >
                                             {customer.isActive ? 'Desativar' : 'Ativar'}

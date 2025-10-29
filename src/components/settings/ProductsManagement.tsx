@@ -56,11 +56,14 @@ export function ProductsManagement() {
                 getProducts(),
                 getCategories()
             ]);
-            setProducts(productsData.products || productsData);
-            setCategories(categoriesData);
+            // Garantir que os dados são arrays
+            setProducts(Array.isArray(productsData) ? productsData : Array.isArray(productsData.products) ? productsData.products : []);
+            setCategories(Array.isArray(categoriesData) ? categoriesData : []);
         } catch (err) {
             setError('Erro ao carregar dados');
             console.error('Erro ao buscar dados:', err);
+            setProducts([]);
+            setCategories([]);
         } finally {
             setIsLoading(false);
         }

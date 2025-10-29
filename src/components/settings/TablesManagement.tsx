@@ -49,7 +49,7 @@ export function TablesManagement() {
                 getAreas(),
                 getLocations()
             ]);
-            
+
             // Garantir que todos são arrays
             setTables(Array.isArray(tablesData) ? tablesData : []);
             setAreas(Array.isArray(areasData) ? areasData : []);

@@ -48,18 +48,23 @@ export function PaymentsManagement() {
                 getPayments(),
                 getOrders()
             ]);
-            setPayments(paymentsData);
-            setOrders(ordersData);
+            // Garantir que os dados são arrays
+            setPayments(Array.isArray(paymentsData) ? paymentsData : []);
+            setOrders(Array.isArray(ordersData) ? ordersData : []);
         } catch (err) {
             setError('Erro ao carregar dados');
             console.error('Erro ao buscar dados:', err);
+            setPayments([]);
+            setOrders([]);
         } finally {
             setIsLoading(false);
         }
     };
 
     const filterPayments = () => {
-        let filtered = payments;
+        // Garantir que payments é um array
+        const paymentsList = Array.isArray(payments) ? payments : [];
+        let filtered = paymentsList;
 
         if (searchTerm.trim()) {
             filtered = filtered.filter(payment =>
@@ -305,7 +310,7 @@ export function PaymentsManagement() {
                             {searchTerm || statusFilter !== 'ALL' || methodFilter !== 'ALL' ? 'Nenhum pagamento encontrado para os filtros aplicados' : 'Nenhum pagamento cadastrado'}
                         </li>
                     ) : (
-                        filteredPayments.map((payment) => (
+                        (Array.isArray(filteredPayments) ? filteredPayments : []).map((payment) => (
                             <li key={payment.id} className="px-6 py-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center">

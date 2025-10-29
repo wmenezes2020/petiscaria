@@ -57,15 +57,15 @@ export function OrdersManagement() {
                 getTables(),
                 getProducts()
             ]);
-            
+
             // Garantir que todos são arrays
             setOrders(Array.isArray(ordersData) ? ordersData : []);
             setCustomers(Array.isArray(customersData) ? customersData : []);
             setTables(Array.isArray(tablesData) ? tablesData : []);
-            
+
             // Products pode vir como objeto { products: [] }
-            const productsArray = Array.isArray(productsData) 
-                ? productsData 
+            const productsArray = Array.isArray(productsData)
+                ? productsData
                 : (Array.isArray((productsData as any)?.products) ? (productsData as any).products : []);
             setProducts(productsArray);
         } catch (err) {
@@ -79,7 +79,7 @@ export function OrdersManagement() {
     const filterOrders = () => {
         // Garantir que orders é um array
         const ordersList = Array.isArray(orders) ? orders : [];
-        
+
         let filtered = ordersList;
 
         if (searchTerm.trim()) {
