@@ -333,10 +333,16 @@ export const deleteTable = async (id: string): Promise<void> => {
 export interface LocationResponse {
   id: string;
   name: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  phone?: string;
+  email?: string;
+  isActive: boolean;
+  companyId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AreaResponse {
