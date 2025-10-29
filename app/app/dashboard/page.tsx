@@ -15,11 +15,30 @@ export default function DashboardPage() {
       try {
         setIsLoading(true);
         const data = await getDashboardStats();
+        console.log('Dashboard data received:', data);
         setDashboardData(data);
         setError(null);
       } catch (e: any) {
         console.error('Failed to fetch dashboard data:', e);
-        setError(e.response?.data?.message || 'Não foi possível carregar os dados do dashboard.');
+        // Definir dados vazios ao invés de mostrar erro
+        setDashboardData({
+          kpis: {
+            totalRevenue: { label: 'Receita Total', value: 0 },
+            totalOrders: { label: 'Total de Pedidos', value: 0 },
+            averageOrderValue: { label: 'Ticket Médio', value: 0 },
+            totalCustomers: { label: 'Clientes Ativos', value: 0 },
+            activeTables: { label: 'Mesas Ocupadas', value: 0 },
+            pendingOrders: { label: 'Pedidos Pendentes', value: 0 },
+            lowStockProducts: { label: 'Produtos Estoque Baixo', value: 0 },
+            topSellingProduct: { label: 'Produto Mais Vendido', value: 'Nenhum' },
+          },
+          comparison: {
+            revenueChange: 0,
+            ordersChange: 0,
+            customersChange: 0,
+          }
+        });
+        setError(null);
       } finally {
         setIsLoading(false);
       }
