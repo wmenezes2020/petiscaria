@@ -36,6 +36,9 @@ export default function DashboardPage() {
             revenueChange: 0,
             ordersChange: 0,
             customersChange: 0,
+          },
+          tables: {
+            recentOrders: []
           }
         });
         setError(null);
@@ -258,7 +261,7 @@ export default function DashboardPage() {
           <h2 className="text-lg font-semibold text-gray-900">Pedidos Recentes</h2>
         </div>
         <div className="p-6">
-          {dashboardData.tables.recentOrders.length > 0 ? (
+          {dashboardData.tables?.recentOrders && dashboardData.tables.recentOrders.length > 0 ? (
             <div className="space-y-4">
               {dashboardData.tables.recentOrders.slice(0, 5).map((order: any) => (
                 <div key={order.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
