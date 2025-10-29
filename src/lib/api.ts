@@ -1,8 +1,22 @@
 import axios from 'axios';
 
 // Configuração base da API
+const getApiUrl = () => {
+  // Se estiver no navegador, usar a URL completa
+  if (typeof window !== 'undefined') {
+    // Em produção, usar a URL do domínio atual sem /api/v1 (será adicionado automaticamente)
+    const isProduction = !window.location.hostname.includes('localhost');
+    if (isProduction) {
+      return `${window.location.protocol}//api-petiscaria.edeniva.com.br/api/v1`;
+    }
+    return 'http://localhost:3001/api/v1';
+  }
+  // Durante SSR, usar a variável de ambiente
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+};
+
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1',
+  baseURL: getApiUrl(),
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
