@@ -62,22 +62,27 @@ export function CustomersManagement() {
         try {
             setIsLoading(true);
             const customersData = await getCustomers();
-            setCustomers(customersData);
+            // Garantir que customersData é um array
+            setCustomers(Array.isArray(customersData) ? customersData : []);
         } catch (err) {
             setError('Erro ao carregar clientes');
             console.error('Erro ao buscar clientes:', err);
+            setCustomers([]); // Definir array vazio em caso de erro
         } finally {
             setIsLoading(false);
         }
     };
 
     const filterCustomers = () => {
+        // Garantir que customers é um array
+        const customersList = Array.isArray(customers) ? customers : [];
+        
         if (!searchTerm.trim()) {
-            setFilteredCustomers(customers);
+            setFilteredCustomers(customersList);
             return;
         }
 
-        const filtered = customers.filter(customer =>
+        const filtered = customersList.filter(customer =>
             customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
             customer.phone.includes(searchTerm) ||
@@ -290,7 +295,7 @@ export function CustomersManagement() {
                             {searchTerm ? 'Nenhum cliente encontrado para esta busca' : 'Nenhum cliente cadastrado'}
                         </li>
                     ) : (
-                        filteredCustomers.map((customer) => (
+                        (Array.isArray(filteredCustomers) ? filteredCustomers : []).map((customer) => (
                             <li key={customer.id} className="px-6 py-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center">
