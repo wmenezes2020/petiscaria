@@ -92,7 +92,21 @@ export default function DashboardPage() {
     return null;
   }
 
-  const { kpis, comparison } = dashboardData;
+  // Validação defensiva para evitar erros de propriedades undefined
+  const { kpis = {
+    totalRevenue: { label: 'Receita Total', value: 0 },
+    totalOrders: { label: 'Total de Pedidos', value: 0 },
+    averageOrderValue: { label: 'Ticket Médio', value: 0 },
+    totalCustomers: { label: 'Clientes Ativos', value: 0 },
+    activeTables: { label: 'Mesas Ocupadas', value: 0 },
+    pendingOrders: { label: 'Pedidos Pendentes', value: 0 },
+    lowStockProducts: { label: 'Produtos Estoque Baixo', value: 0 },
+    topSellingProduct: { label: 'Produto Mais Vendido', value: 'Nenhum' },
+  }, comparison = {
+    revenueChange: 0,
+    ordersChange: 0,
+    customersChange: 0,
+  } } = dashboardData;
 
   return (
     <div className="space-y-6">
