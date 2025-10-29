@@ -13,9 +13,11 @@ import {
   LayoutGrid,
   BarChart3,
   Bell,
-  Shield
+  Shield,
+  MapPin
 } from 'lucide-react';
 import { UsersManagement } from '@/components/settings/UsersManagement';
+import { LocationsManagement } from '@/components/settings/LocationsManagement';
 import { AreasManagement } from '@/components/settings/AreasManagement';
 import { CategoriesManagement } from '@/components/settings/CategoriesManagement';
 import { ProductsManagement } from '@/components/settings/ProductsManagement';
@@ -29,6 +31,7 @@ import { GeneralSettingsManagement } from '@/components/settings/GeneralSettings
 
 type SettingTab =
   | 'users'
+  | 'locations'
   | 'areas'
   | 'categories'
   | 'products'
