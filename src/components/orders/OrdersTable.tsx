@@ -13,11 +13,22 @@ interface OrdersTableProps {
 }
 
 export function OrdersTable({ orders }: OrdersTableProps) {
-  const [total] = useState(orders.length);
+  const [total] = useState(Array.isArray(orders) ? orders.length : 0);
   const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
   const { user } = useAuthStore();
 
   const canManageOrders = user?.role === 'admin' || user?.role === 'manager' || user?.role === 'waiter';
+
+  // Garantir que orders é um array
+  const ordersList = Array.isArray(orders) ? orders : [];
+
+  if (ordersList.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+        <p className="text-gray-500">Nenhum pedido encontrado.</p>
+      </div>
+    );
+  }
 
   // TODO: Implement client-side fetching for pagination and filtering
 
@@ -62,7 +73,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => (
+              {ordersList.map((order) => (
                 <tr key={order.id} onClick={() => handleRowClick(order)} className="bg-white border-b hover:bg-gray-50 cursor-pointer">
                   <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                     #{order.id.substring(0, 8)}...
@@ -90,7 +101,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         {/* Pagination Placeholder */}
         <div className="flex justify-between items-center p-4 border-t">
           <span className="text-sm text-gray-700">
-            Mostrando 1 a {orders.length} de {total} pedidos
+            Mostrando 1 a {ordersList.length} de {total} pedidos
           </span>
           <div className="inline-flex items-center space-x-2">
             <button className="p-2 text-gray-500 rounded-md hover:bg-gray-100 disabled:opacity-50" disabled>

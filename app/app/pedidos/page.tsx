@@ -22,10 +22,13 @@ export default function PedidosPage() {
       try {
         setIsLoading(true);
         const data = await getOrders();
-        setOrdersData(data);
+        console.log('Orders data received:', data);
+        // Garantir que data é um array
+        setOrdersData(Array.isArray(data) ? data : []);
       } catch (e) {
         console.error('Failed to fetch orders:', e);
         setError('Não foi possível carregar os pedidos.');
+        setOrdersData([]); // Definir array vazio em caso de erro
       } finally {
         setIsLoading(false);
       }
