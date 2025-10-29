@@ -358,6 +358,41 @@ export const getLocations = async (): Promise<LocationResponse[]> => {
   }
 };
 
+export const createLocation = async (data: {
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  phone?: string;
+  email?: string;
+}): Promise<LocationResponse> => {
+  try {
+    return await apiClient.post<LocationResponse>('/locations', data);
+  } catch (error) {
+    console.error('Erro ao criar localização:', error);
+    throw error;
+  }
+};
+
+export const updateLocation = async (id: string, data: Partial<LocationResponse>): Promise<LocationResponse> => {
+  try {
+    return await apiClient.patch<LocationResponse>(`/locations/${id}`, data);
+  } catch (error) {
+    console.error('Erro ao atualizar localização:', error);
+    throw error;
+  }
+};
+
+export const deleteLocation = async (id: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/locations/${id}`);
+  } catch (error) {
+    console.error('Erro ao excluir localização:', error);
+    throw error;
+  }
+};
+
 export const getAreas = async (): Promise<AreaResponse[]> => {
   try {
     return await apiClient.get<AreaResponse[]>('/areas');

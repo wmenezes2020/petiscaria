@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  Settings, 
-  Users, 
-  Package, 
-  Table, 
+import {
+  Settings,
+  Users,
+  Package,
+  Table,
   UserCheck,
   ShoppingCart,
   CreditCard,
@@ -27,7 +27,7 @@ import { InventoryManagement } from '@/components/settings/InventoryManagement';
 import { ReportsManagement } from '@/components/settings/ReportsManagement';
 import { GeneralSettingsManagement } from '@/components/settings/GeneralSettingsManagement';
 
-type SettingTab = 
+type SettingTab =
   | 'users'
   | 'areas'
   | 'categories'
@@ -49,7 +49,8 @@ interface TabConfig {
 
 const tabs: TabConfig[] = [
   { id: 'users', label: 'Usuários', icon: Users, description: 'Gestão de usuários e permissões' },
-  { id: 'areas', label: 'Áreas', icon: LayoutGrid, description: 'Gestão de áreas e localizações' },
+  { id: 'locations', label: 'Localizações', icon: MapPin, description: 'Cadastro de localizações' },
+  { id: 'areas', label: 'Áreas', icon: LayoutGrid, description: 'Gestão de áreas' },
   { id: 'categories', label: 'Categorias', icon: FileText, description: 'Gestão de categorias de produtos' },
   { id: 'products', label: 'Produtos', icon: Package, description: 'Gestão de produtos e cardápio' },
   { id: 'tables', label: 'Mesas', icon: Table, description: 'Gestão de mesas' },
@@ -68,6 +69,8 @@ export default function ConfiguracoesPage() {
     switch (activeTab) {
       case 'users':
         return <UsersManagement />;
+      case 'locations':
+        return <LocationsManagement />;
       case 'areas':
         return <AreasManagement />;
       case 'categories':
@@ -113,7 +116,7 @@ export default function ConfiguracoesPage() {
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             const Icon = tab.icon;
-            
+
             return (
               <button
                 key={tab.id}

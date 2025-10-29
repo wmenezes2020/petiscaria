@@ -64,7 +64,7 @@ export default function ClientesPage() {
 
   const handleDeleteCustomer = async (customerId: string) => {
     if (!confirm('Tem certeza que deseja excluir este cliente?')) return;
-    
+
     try {
       await deleteCustomer(customerId);
       setCustomers(customers.filter(c => c.id !== customerId));
@@ -178,9 +178,8 @@ export default function ClientesPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.cpf}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        customer.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${customer.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
                         {customer.isActive ? 'Ativo' : 'Inativo'}
                       </span>
                     </td>
@@ -252,9 +251,8 @@ export default function ClientesPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Status</label>
-                  <span className={`inline-flex px-2 py-1 text-xs leading-5 font-semibold rounded-full mt-1 ${
-                    selectedCustomer.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
+                  <span className={`inline-flex px-2 py-1 text-xs leading-5 font-semibold rounded-full mt-1 ${selectedCustomer.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
                     {selectedCustomer.isActive ? 'Ativo' : 'Inativo'}
                   </span>
                 </div>

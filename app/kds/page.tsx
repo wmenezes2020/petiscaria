@@ -43,7 +43,7 @@ export default function KdsPage() {
     // Buscar pedidos a cada 10 segundos quando auto-refresh estiver ativo
     useEffect(() => {
         fetchOrders();
-        
+
         if (autoRefresh) {
             const interval = setInterval(() => {
                 fetchOrders();
@@ -68,7 +68,7 @@ export default function KdsPage() {
             setIsLoading(true);
             const data = await getOrders();
             const ordersList = Array.isArray(data) ? data : [];
-            
+
             // Filtrar apenas pedidos em preparação
             const preparingOrders = ordersList
                 .filter(order => order.status === 'PENDING' || order.status === 'PREPARING')
@@ -101,13 +101,13 @@ export default function KdsPage() {
     const handleUpdateStatus = async (orderId: string, itemId: string, newStatus: 'PREPARING' | 'READY' | 'PAUSED') => {
         try {
             await updateOrderItemStatus(itemId, { status: newStatus });
-            
+
             // Atualizar estado local
-            setOrders(orders.map(order => 
-                order.id === orderId 
+            setOrders(orders.map(order =>
+                order.id === orderId
                     ? {
                         ...order,
-                        items: order.items.map(item => 
+                        items: order.items.map(item =>
                             item.id === itemId ? { ...item, status: newStatus } : item
                         )
                     }
@@ -162,7 +162,7 @@ export default function KdsPage() {
         const now = new Date();
         const created = new Date(createdAt);
         const minutesDiff = (now.getTime() - created.getTime()) / 60000;
-        
+
         if (minutesDiff > 15) return 'text-red-400';
         if (minutesDiff > 10) return 'text-orange-400';
         if (minutesDiff > 5) return 'text-yellow-400';
@@ -272,11 +272,10 @@ export default function KdsPage() {
                                                 <div key={index} className="text-sm text-gray-800 leading-relaxed">
                                                     {item.quantity} x {item.productName}
                                                     {item.notes && <span className="text-xs text-gray-500 ml-1">({item.notes})</span>}
-                                                    <span className={`ml-2 px-2 py-0.5 rounded text-xs ${
-                                                        item.status === 'READY' ? 'bg-green-100 text-green-800' :
-                                                        item.status === 'PAUSED' ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-blue-100 text-blue-800'
-                                                    }`}>
+                                                    <span className={`ml-2 px-2 py-0.5 rounded text-xs ${item.status === 'READY' ? 'bg-green-100 text-green-800' :
+                                                            item.status === 'PAUSED' ? 'bg-yellow-100 text-yellow-800' :
+                                                                'bg-blue-100 text-blue-800'
+                                                        }`}>
                                                         {item.status === 'READY' ? '✓' : item.status === 'PAUSED' ? '⏸' : '⬜'}
                                                     </span>
                                                 </div>
