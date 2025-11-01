@@ -100,7 +100,17 @@ export default function KdsPage() {
 
     const handleUpdateStatus = async (orderId: string, itemId: string, newStatus: 'PREPARING' | 'READY' | 'PAUSED') => {
         try {
-            await updateOrderItemStatus(itemId, { status: newStatus });
+            const statusMap = {
+                PREPARING: 'preparing',
+                READY: 'ready',
+                PAUSED: 'pending',
+            } as const;
+
+            await updateOrderItemStatus({
+                orderId,
+                itemId,
+                status: statusMap[newStatus],
+            });
 
             // Atualizar estado local
             setOrders(orders.map(order =>

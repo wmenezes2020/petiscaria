@@ -820,6 +820,19 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
     );
 };
 
+export type KitchenItemStatus = 'pending' | 'preparing' | 'ready' | 'served';
+
+export interface UpdateOrderItemStatusPayload {
+  orderId: string;
+  itemId: string;
+  status: KitchenItemStatus;
+  notes?: string;
+}
+
+export const updateOrderItemStatus = async (payload: UpdateOrderItemStatusPayload) => {
+  return apiClient.post('/kitchen/item/status', payload);
+};
+
 
 
 // =============================================

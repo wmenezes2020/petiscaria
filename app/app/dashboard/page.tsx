@@ -36,7 +36,7 @@ export default function DashboardPage() {
           activeTables: { label: 'Mesas Ocupadas', value: 0 },
           pendingOrders: { label: 'Pedidos Pendentes', value: 0 },
           lowStockProducts: { label: 'Produtos Estoque Baixo', value: 0 },
-          topSellingProduct: { label: 'Produto Mais Vendido', value: 'Nenhum' },
+          topSellingProduct: { label: 'Produto Mais Vendido', value: 0 },
         },
         comparison: {
           revenueChange: 0,
