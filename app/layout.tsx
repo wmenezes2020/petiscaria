@@ -58,7 +58,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   // CRITICAL: Layout minimalista - apenas HTML básico
-  // Não há wrappers ou componentes client-side aqui
+  // Remover wrapper div id="__next" que pode estar causando conflito
+  // O Next.js já cria sua própria estrutura
   return (
     <html lang="pt-BR">
       <head>
@@ -73,8 +74,9 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#4f46e5" />
       </head>
       <body>
-        {/* CRITICAL: Children direto sem wrappers */}
-        <div id="__next">{children}</div>
+        {/* CRITICAL: Children direto sem wrappers adicionais */}
+        {/* O Next.js cria automaticamente a estrutura necessária */}
+        {children}
       </body>
     </html>
   );
