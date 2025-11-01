@@ -5,7 +5,7 @@ import { useForm, useFieldArray, SubmitHandler, Controller } from 'react-hook-fo
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { getMenuItems, getTables, createOrder, getCustomers, MenuItemResponse, TableResponse, OrderResponse, CustomerResponse, CreateOrderPayload } from '@/lib/api';
-import { createPortal } from 'react-dom';
+import { Portal } from '@/components/PortalRoot';
 import { X, Plus, Trash2, User, XCircle, DollarSign, Table, Tag, Loader2 } from 'lucide-react';
 
 const orderItemSchema = z.object({
@@ -154,12 +154,13 @@ export function CreateOrderForm({ onClose, onSave }: CreateOrderFormProps) {
     const discount = Number.isFinite(parsedDiscount) ? parsedDiscount : 0;
     const total = Math.max(0, subtotal - discount);
 
-    if (!mounted) return null; // Prevenir renderização no SSR para createPortal
+    if (!mounted) return null; // Prevenir renderização no SSR para Portal
 
-    return createPortal(
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn"
-        >
+    return (
+        <Portal>
+            <div
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn"
+            >
             <div
                 className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col max-h-[90vh]"
             >
@@ -297,7 +298,7 @@ export function CreateOrderForm({ onClose, onSave }: CreateOrderFormProps) {
                     </div>
                 </form>
             </div>
-        </div>,
-        document.body
+        </div>
+        </Portal>
     );
 }

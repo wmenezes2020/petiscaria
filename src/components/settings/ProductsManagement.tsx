@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PlusCircle, Edit, Trash2, Package, Image as ImageIcon, AlertTriangle, XCircle } from 'lucide-react';
 import { getProducts, createProduct, updateProduct, deleteProduct, getCategories, ProductResponse, CategoryResponse } from '@/lib/api';
-import { createPortal } from 'react-dom';
+import { Portal } from '@/components/PortalRoot';
 
 interface ProductFormData {
     name: string;
@@ -327,7 +327,8 @@ export function ProductsManagement() {
             </div>
 
             {/* Form Modal */}
-            {mounted && isFormOpen && createPortal(
+            {mounted && isFormOpen && (
+                <Portal>
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
                     <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100">
                         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
@@ -477,8 +478,8 @@ export function ProductsManagement() {
                             </div>
                         </form>
                     </div>
-                </div>,
-                document.body
+                </div>
+                </Portal>
             )}
         </div>
     );
