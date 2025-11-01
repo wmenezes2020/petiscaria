@@ -175,10 +175,15 @@ export function ReportsPanel() {
         const a = document.createElement('a');
         a.href = url;
         a.download = `relatorio-vendas-${new Date().toISOString().split('T')[0]}.txt`;
+        a.style.display = 'none';
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        setTimeout(() => {
+          if (a.parentNode) {
+            document.body.removeChild(a);
+          }
+          URL.revokeObjectURL(url);
+        }, 0);
     };
 
     if (isLoading) {

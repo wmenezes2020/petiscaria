@@ -20,43 +20,36 @@ export function AppShell({ children }: AppShellProps) {
     checkAuthStatus: state.checkAuthStatus,
   }));
 
-  const [hasHydrated, setHasHydrated] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    const store: any = useAuthStore;
-    const persist = store.persist;
-
-    if (persist?.hasHydrated?.()) {
-      setHasHydrated(true);
-    } else if (persist?.onFinishHydration) {
-      const unsub = persist.onFinishHydration(() => {
-        setHasHydrated(true);
-      });
-      return () => {
-        unsub?.();
-      };
-    } else {
-      setHasHydrated(true);
-    }
-  }, []);
+    setIsMounted(true);
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   useEffect(() => {
-    if (hasHydrated) {
-      checkAuthStatus();
-    }
-  }, [hasHydrated, checkAuthStatus]);
-
-  useEffect(() => {
-    if (!hasHydrated) {
-      return;
-    }
+    if (!isMounted) return;
 
     if (!isAuthenticated) {
-      router.replace(`/login?redirect=${encodeURIComponent(pathname || '/app')}`);
+      const redirectPath = pathname || '/app';
+      router.replace(`/login?redirect=${encodeURIComponent(redirectPath)}`);
     }
-  }, [hasHydrated, isAuthenticated, pathname, router]);
+  }, [isMounted, isAuthenticated, pathname, router]);
 
-  if (!hasHydrated || !isAuthenticated) {
+  // Prevenir hydration mismatch - sempre mostrar loading até montar
+  if (!isMounted) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-100">
+        <div className="flex flex-col items-center space-y-4 text-gray-600">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+          <p className="text-sm font-medium">Carregando…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se não autenticado, mostrar loading durante redirecionamento
+  if (!isAuthenticated) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-100">
         <div className="flex flex-col items-center space-y-4 text-gray-600">

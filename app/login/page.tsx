@@ -23,12 +23,17 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+    const [isMounted, setIsMounted] = useState(false);
     const router = useRouter();
     const { login, error, clearError, isAuthenticated, checkAuthStatus } = useAuthStore();
 
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     // Verificar se já está autenticado e redirecionar se necessário
     useEffect(() => {
-        console.log('🔍 Verificando autenticação:', { isAuthenticated });
+        if (!isMounted) return;
 
         // Verificar o status de autenticação
         checkAuthStatus();
@@ -36,16 +41,14 @@ export default function LoginPage() {
         // Aguardar um tick para garantir que o estado foi carregado do localStorage
         const timer = setTimeout(() => {
             if (isAuthenticated) {
-                console.log('🔄 Usuário já autenticado, redirecionando...');
-                router.push('/app/dashboard');
+                router.replace('/app/dashboard');
             } else {
-                console.log('👤 Usuário não autenticado, mostrando formulário');
                 setIsCheckingAuth(false);
             }
-        }, 100);
+        }, 150);
 
         return () => clearTimeout(timer);
-    }, [isAuthenticated, router, checkAuthStatus]);
+    }, [isMounted, isAuthenticated, router, checkAuthStatus]);
 
     const {
         register,
@@ -82,8 +85,8 @@ export default function LoginPage() {
 
 
 
-    // Se estiver verificando autenticação, mostrar loading
-    if (isCheckingAuth) {
+    // Prevenir hydration mismatch
+    if (!isMounted || isCheckingAuth) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
                 <div className="text-center">

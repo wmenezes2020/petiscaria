@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { Toaster } from 'react-hot-toast';
+import { ClientProviders } from '@/components/providers/ClientProviders';
 
 export const metadata: Metadata = {
   title: 'Petiscaria da Thay - Sistema de Gestão',
@@ -69,32 +69,8 @@ export default function RootLayout({
         <meta name="theme-color" content="#4f46e5" /> {/* Atualizado para primary-600 */}
         <meta name="msapplication-TileColor" content="#4f46e5" /> {/* Atualizado para primary-600 */}
       </head>
-      <body className="antialiased">
-        {children}
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-            success: {
-              duration: 3000,
-              iconTheme: {
-                primary: '#22c55e',
-                secondary: '#fff',
-              },
-            },
-            error: {
-              duration: 5000,
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
-              },
-            },
-          }}
-        />
+      <body className="antialiased" suppressHydrationWarning>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

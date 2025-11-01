@@ -1,8 +1,9 @@
-import type { Metadata } from 'next';
+'use client';
+
 import '../globals.css';
 import dynamic from 'next/dynamic';
 
-const AppShell = dynamic(() => import('@/components/layout/AppShell'), {
+const AppShell = dynamic(() => import('@/components/layout/AppShell').then(mod => ({ default: mod.default })), {
   ssr: false,
   loading: () => (
     <div className="flex h-screen items-center justify-center bg-gray-100">
@@ -13,11 +14,6 @@ const AppShell = dynamic(() => import('@/components/layout/AppShell'), {
     </div>
   ),
 });
-
-export const metadata: Metadata = {
-  title: 'Petiscaria da Thay - Sistema de Gestão',
-  description: 'Sistema completo de gestão para petiscarias, bares e restaurantes',
-};
 
 export default function AppLayout({
   children,
