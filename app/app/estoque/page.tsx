@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getIngredients, IngredientResponse } from '@/lib/api';
 import { StockTable } from '@/components/stock/StockTable';
-import { PlusCircle, ShoppingCart, Sliders } from 'lucide-react';
+import { PlusCircle, ShoppingCart, Sliders, XCircle } from 'lucide-react';
 
 export default function EstoquePage() {
   const [ingredients, setIngredients] = useState<IngredientResponse[]>([]);
@@ -25,28 +25,35 @@ export default function EstoquePage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-red-500">{error}</p>
+      <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl mb-6 flex items-start gap-3">
+        <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+        <div className="flex-1">
+            <h3 className="font-semibold text-red-800">Erro</h3>
+            <p>{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Controle de Estoque</h1>
-        <div className="flex space-x-2">
-          <button className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
-            <Sliders size={18} className="mr-2" />
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Controle de Estoque</h1>
+          <p className="text-sm text-gray-600">Gerencie seus insumos, visualize o nível de estoque e registre compras</p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 shadow-sm transition">
+            <Sliders className="h-4 w-4" />
             Ajuste Rápido
           </button>
-          <button className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-            <ShoppingCart size={18} className="mr-2" />
+          <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white shadow-md hover:shadow-lg transition">
+            <ShoppingCart className="h-4 w-4" />
             Registrar Compra
           </button>
-          <button className="flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
-            <PlusCircle size={18} className="mr-2" />
+          <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md hover:shadow-lg transition">
+            <PlusCircle className="h-4 w-4" />
             Adicionar Insumo
           </button>
         </div>

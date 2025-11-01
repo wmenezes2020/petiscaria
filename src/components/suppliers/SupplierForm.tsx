@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Supplier, createSupplier, updateSupplier } from '@/lib/api';
+import { createPortal } from 'react-dom';
+import { X, Building2, Mail, Phone, CreditCard, User, CheckCircle, Home, MapPin, Globe, Map, XCircle, Loader2, Save, PlusCircle } from 'lucide-react';
 
 const supplierSchema = z.object({
     name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -86,218 +88,282 @@ export default function SupplierForm({ supplier, onClose, onSuccess }: SupplierF
         }
     };
 
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-semibold">
+    useEffect(() => {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'unset';
+        };
+    }, [onClose]);
+
+    return createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
+            <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] flex flex-col">
+                <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-gray-900">
                         {supplier ? 'Editar Fornecedor' : 'Novo Fornecedor'}
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600"
-                    >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+                    </h3>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                            {error}
-                        </div>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Nome da Empresa *
-                            </label>
-                            <input
-                                type="text"
-                                {...register('name')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Nome da empresa"
-                            />
-                            {errors.name && (
-                                <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
-                            )}
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                {...register('email')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="email@exemplo.com"
-                            />
-                            {errors.email && (
-                                <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-                            )}
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Telefone
-                            </label>
-                            <input
-                                type="tel"
-                                {...register('phone')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="(11) 99999-9999"
-                            />
-                            {errors.phone && (
-                                <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
-                            )}
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                CNPJ
-                            </label>
-                            <input
-                                type="text"
-                                {...register('cnpj')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="00.000.000/0000-00"
-                            />
-                            {errors.cnpj && (
-                                <p className="text-red-500 text-sm mt-1">{errors.cnpj.message}</p>
-                            )}
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Nome do Contato
-                            </label>
-                            <input
-                                type="text"
-                                {...register('contactName')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Nome do contato principal"
-                            />
-                            {errors.contactName && (
-                                <p className="text-red-500 text-sm mt-1">{errors.contactName.message}</p>
-                            )}
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Status
-                            </label>
-                            <select
-                                {...register('status')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="ACTIVE">Ativo</option>
-                                <option value="INACTIVE">Inativo</option>
-                            </select>
-                            {errors.status && (
-                                <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
-                            )}
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Endereço
-                        </label>
-                        <input
-                            type="text"
-                            {...register('address')}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Endereço completo"
-                        />
-                        {errors.address && (
-                            <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
+                <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col">
+                    <div className="p-6 space-y-5 flex-1 overflow-y-auto">
+                        {error && (
+                            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-4">
+                                <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                                <div className="flex-1">
+                                    <h3 className="text-sm font-semibold text-red-800">Erro:</h3>
+                                    <p className="mt-1 text-sm text-red-700">{error}</p>
+                                </div>
+                            </div>
                         )}
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Cidade
-                            </label>
-                            <input
-                                type="text"
-                                {...register('city')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Cidade"
-                            />
-                            {errors.city && (
-                                <p className="text-red-500 text-sm mt-1">{errors.city.message}</p>
-                            )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label htmlFor="name" className="input-label">
+                                    Nome da Empresa *
+                                </label>
+                                <div className="relative">
+                                    <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        {...register('name')}
+                                        id="name"
+                                        className="input-field pl-10"
+                                        placeholder="Nome da empresa"
+                                        autoFocus
+                                    />
+                                </div>
+                                {errors.name && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label htmlFor="email" className="input-label">
+                                    Email
+                                </label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="email"
+                                        {...register('email')}
+                                        id="email"
+                                        className="input-field pl-10"
+                                        placeholder="email@exemplo.com"
+                                    />
+                                </div>
+                                {errors.email && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label htmlFor="phone" className="input-label">
+                                    Telefone
+                                </label>
+                                <div className="relative">
+                                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="tel"
+                                        {...register('phone')}
+                                        id="phone"
+                                        className="input-field pl-10"
+                                        placeholder="(11) 99999-9999"
+                                    />
+                                </div>
+                                {errors.phone && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label htmlFor="cnpj" className="input-label">
+                                    CNPJ
+                                </label>
+                                <div className="relative">
+                                    <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        {...register('cnpj')}
+                                        id="cnpj"
+                                        className="input-field pl-10"
+                                        placeholder="00.000.000/0000-00"
+                                    />
+                                </div>
+                                {errors.cnpj && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.cnpj.message}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label htmlFor="contactName" className="input-label">
+                                    Nome do Contato
+                                </label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        {...register('contactName')}
+                                        id="contactName"
+                                        className="input-field pl-10"
+                                        placeholder="Nome do contato principal"
+                                    />
+                                </div>
+                                {errors.contactName && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.contactName.message}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label htmlFor="status" className="input-label">
+                                    Status
+                                </label>
+                                <div className="relative">
+                                    <CheckCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <select
+                                        {...register('status')}
+                                        id="status"
+                                        className="input-field pl-10"
+                                    >
+                                        <option value="ACTIVE">Ativo</option>
+                                        <option value="INACTIVE">Inativo</option>
+                                    </select>
+                                </div>
+                                {errors.status && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
+                                )}
+                            </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Estado
+                            <label htmlFor="address" className="input-label">
+                                Endereço
                             </label>
-                            <input
-                                type="text"
-                                {...register('state')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Estado"
-                            />
-                            {errors.state && (
-                                <p className="text-red-500 text-sm mt-1">{errors.state.message}</p>
+                            <div className="relative">
+                                <Home className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                <input
+                                    type="text"
+                                    {...register('address')}
+                                    id="address"
+                                    className="input-field pl-10"
+                                    placeholder="Endereço completo"
+                                />
+                            </div>
+                            {errors.address && (
+                                <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
                             )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div>
+                                <label htmlFor="city" className="input-label">
+                                    Cidade
+                                </label>
+                                <div className="relative">
+                                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        {...register('city')}
+                                        id="city"
+                                        className="input-field pl-10"
+                                        placeholder="Cidade"
+                                    />
+                                </div>
+                                {errors.city && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.city.message}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label htmlFor="state" className="input-label">
+                                    Estado
+                                </label>
+                                <div className="relative">
+                                    <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        {...register('state')}
+                                        id="state"
+                                        className="input-field pl-10"
+                                        placeholder="Estado"
+                                    />
+                                </div>
+                                {errors.state && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.state.message}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label htmlFor="zipCode" className="input-label">
+                                    CEP
+                                </label>
+                                <div className="relative">
+                                    <Map className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        {...register('zipCode')}
+                                        id="zipCode"
+                                        className="input-field pl-10"
+                                        placeholder="00000-000"
+                                    />
+                                </div>
+                                {errors.zipCode && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.zipCode.message}</p>
+                                )}
+                            </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                CEP
+                            <label htmlFor="notes" className="input-label">
+                                Observações
                             </label>
-                            <input
-                                type="text"
-                                {...register('zipCode')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="00000-000"
+                            <textarea
+                                {...register('notes')}
+                                id="notes"
+                                rows={3}
+                                className="input-field"
+                                placeholder="Observações adicionais"
                             />
-                            {errors.zipCode && (
-                                <p className="text-red-500 text-sm mt-1">{errors.zipCode.message}</p>
+                            {errors.notes && (
+                                <p className="text-red-500 text-sm mt-1">{errors.notes.message}</p>
                             )}
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Observações
-                        </label>
-                        <textarea
-                            {...register('notes')}
-                            rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Observações adicionais"
-                        />
-                        {errors.notes && (
-                            <p className="text-red-500 text-sm mt-1">{errors.notes.message}</p>
-                        )}
-                    </div>
-
-                    <div className="flex justify-end space-x-3 pt-4">
+                    <div className="px-6 py-4 border-t border-gray-100 flex justify-end space-x-3 bg-gray-50 rounded-b-2xl -mx-6 -mb-6">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                            className="btn-secondary"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                            className="btn-primary"
                         >
-                            {isSubmitting ? 'Salvando...' : supplier ? 'Atualizar' : 'Criar'}
+                            {isSubmitting ? (
+                                <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Salvando...</>
+                            ) : supplier ? (
+                                <><Save className="h-5 w-5 mr-2" /> Atualizar</>
+                            ) : (
+                                <><PlusCircle className="h-5 w-5 mr-2" /> Criar</>
+                            )}
                         </button>
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

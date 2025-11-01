@@ -4,8 +4,11 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { openCashRegister, CashRegisterResponse } from '@/lib/api';
+import { CashRegisterResponse, openCashRegister } from '@/lib/api';
 import { Store } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, DollarSign, XCircle, Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 
 const openSchema = z.object({
     openingBalance: z.preprocess(
@@ -40,69 +43,107 @@ export function ClosedCashRegister({ onCashRegisterOpened }: ClosedCashRegisterP
         }
     };
 
+    useEffect(() => {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsModalOpen(false);
+            }
+        };
+
+        if (isModalOpen) {
+            document.addEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'unset';
+        };
+    }, [isModalOpen]);
+
     return (
         <>
-            <div className="text-center bg-white p-12 rounded-lg shadow-sm">
-                <Store className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-lg font-medium text-gray-900">Caixa Fechado</h3>
-                <p className="mt-1 text-sm text-gray-500">
+            <div className="text-center bg-white p-12 rounded-2xl shadow-lg border border-gray-100 max-w-sm mx-auto">
+                <Store className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+                <h3 className="mt-2 text-2xl font-bold text-gray-900">Caixa Fechado</h3>
+                <p className="mt-2 text-base text-gray-500">
                     Não há um caixa aberto no momento. Abra um novo caixa para começar a registrar as vendas.
                 </p>
-                <div className="mt-6">
+                <div className="mt-8">
                     <button
                         type="button"
                         onClick={() => setIsModalOpen(true)}
-                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
+                        className="btn-primary px-8 py-3 text-lg"
                     >
                         Abrir Caixa
                     </button>
                 </div>
             </div>
 
-            {isModalOpen && (
-                <div className="fixed inset-0 z-10 overflow-y-auto bg-black bg-opacity-50">
-                    <div className="flex items-center justify-center min-h-screen">
-                        <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-                            <h2 className="text-xl font-bold mb-4">Abrir Novo Caixa</h2>
-                            <form onSubmit={handleSubmit(handleOpenCashRegister)}>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label htmlFor="openingBalance" className="block text-sm font-medium text-gray-700">
-                                            Valor de Abertura (Fundo de Troco)
-                                        </label>
+            {isModalOpen && createPortal(
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
+                    <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] flex flex-col">
+                        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                            <h3 className="text-xl font-bold text-gray-900">Abrir Novo Caixa</h3>
+                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+                        </div>
+
+                        <form onSubmit={handleSubmit(handleOpenCashRegister)} className="p-6 space-y-5 flex-1 flex flex-col">
+                            <div className="space-y-4 flex-1 overflow-y-auto">
+                                <div>
+                                    <label htmlFor="openingBalance" className="input-label">
+                                        Valor de Abertura (Fundo de Troco)
+                                    </label>
+                                    <div className="relative">
+                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                         <input
                                             type="number"
                                             step="0.01"
                                             {...register('openingBalance')}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-                                            placeholder="0,00"
-                                        />
-                                        {errors.openingBalance && <p className="text-red-500 text-xs mt-1">{errors.openingBalance.message}</p>}
-                                    </div>
-                                    <div>
-                                        <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-                                            Observações (Opcional)
-                                        </label>
-                                        <textarea
-                                            {...register('notes')}
-                                            rows={3}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                            id="openingBalance"
+                                            className="input-field pl-10"
+                                            placeholder="0.00"
+                                            autoFocus
                                         />
                                     </div>
+                                    {errors.openingBalance && <p className="text-red-500 text-sm mt-1">{errors.openingBalance.message}</p>}
                                 </div>
-                                {apiError && <p className="text-red-500 text-sm mt-4">{apiError}</p>}
-                                <div className="mt-6 flex justify-end space-x-2">
-                                    <button type="button" onClick={() => setIsModalOpen(false)} disabled={isSubmitting} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
-                                        Cancelar
-                                    </button>
-                                    <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
-                                        {isSubmitting ? 'Abrindo...' : 'Abrir Caixa'}
-                                    </button>
+                                <div>
+                                    <label htmlFor="notes" className="input-label">
+                                        Observações (Opcional)
+                                    </label>
+                                    <textarea
+                                        {...register('notes')}
+                                        id="notes"
+                                        rows={3}
+                                        className="input-field"
+                                        placeholder="Notas adicionais sobre a abertura do caixa..."
+                                    />
                                 </div>
-                            </form>
-                        </div>
+                            </div>
+                            {apiError && (
+                                <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mt-5">
+                                    <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                                    <div className="flex-1">
+                                        <h3 className="text-sm font-semibold text-red-800">Erro:</h3>
+                                        <p className="mt-1 text-sm text-red-700">{apiError}</p>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="mt-6 flex justify-end space-x-3 pt-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl px-6 py-4 -mx-6 -mb-6">
+                                <button type="button" onClick={() => setIsModalOpen(false)} disabled={isSubmitting} className="btn-secondary">
+                                    Cancelar
+                                </button>
+                                <button type="submit" disabled={isSubmitting} className="btn-primary">
+                                    {isSubmitting ? <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Abrindo...</> : 'Abrir Caixa'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );

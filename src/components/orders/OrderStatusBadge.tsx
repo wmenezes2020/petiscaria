@@ -2,15 +2,15 @@
 import { cva, VariantProps } from 'class-variance-authority';
 
 const badgeVariants = cva(
-  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide capitalize',
+  'inline-flex items-center px-3 py-1 rounded-md text-sm font-medium capitalize',
   {
     variants: {
       status: {
-        PENDING: 'bg-blue-100 text-blue-800',
-        PREPARING: 'bg-yellow-100 text-yellow-800',
-        READY: 'bg-orange-100 text-orange-800',
-        DELIVERED: 'bg-indigo-100 text-indigo-800',
-        CANCELLED: 'bg-red-100 text-red-800',
+        PENDING: 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20',
+        PREPARING: 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-600/20',
+        READY: 'bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-600/20',
+        DELIVERED: 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-600/20',
+        CANCELLED: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20',
       },
     },
     defaultVariants: {

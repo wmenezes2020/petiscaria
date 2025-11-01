@@ -3,7 +3,7 @@
 
 import { OrderResponse, PaginatedOrdersResponse } from '@/lib/api';
 import { OrderStatusBadge } from './OrderStatusBadge';
-import { MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MoreVertical, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { OrderDetailsModal } from './OrderDetailsModal';
@@ -24,8 +24,10 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 
   if (ordersList.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-        <p className="text-gray-500">Nenhum pedido encontrado.</p>
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center flex flex-col items-center justify-center mt-8">
+        <ShoppingCart className="h-12 w-12 mb-4 text-gray-300" />
+        <p className="text-lg font-semibold text-gray-700 mb-2">Nenhum pedido encontrado</p>
+        <p className="text-sm text-gray-500">Comece a registrar novos pedidos para vê-los aqui.</p>
       </div>
     );
   }
@@ -59,38 +61,40 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
+        <div className="overflow-x-auto rounded-b-2xl">
           <table className="w-full text-sm text-left text-gray-500">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <thead className="text-xs font-semibold uppercase text-gray-600 tracking-wider bg-gray-100/50 rounded-t-2xl">
               <tr>
                 <th scope="col" className="px-6 py-3">ID Pedido</th>
                 <th scope="col" className="px-6 py-3">Status</th>
                 <th scope="col" className="px-6 py-3">Cliente/Mesa</th>
                 <th scope="col" className="px-6 py-3">Data</th>
                 <th scope="col" className="px-6 py-3 text-right">Valor</th>
-                {canManageOrders && <th scope="col" className="px-6 py-3"></th>}
+                {canManageOrders && <th scope="col" className="px-6 py-3"><span className="sr-only">Ações</span></th>}
               </tr>
             </thead>
             <tbody>
               {ordersList.map((order) => (
-                <tr key={order.id} onClick={() => handleRowClick(order)} className="bg-white border-b hover:bg-gray-50 cursor-pointer">
+                <tr key={order.id} onClick={() => handleRowClick(order)} className="bg-white border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer transition-colors duration-200 relative group">
                   <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                     #{order.id.substring(0, 8)}...
                   </th>
                   <td className="px-6 py-4">
                     <OrderStatusBadge status={order.status} />
                   </td>
-                  <td className="px-6 py-4">
-                    {order.table ? `Mesa ${order.table.number}` : (order.customer?.name || 'Balcão')}
+                  <td className="px-6 py-4 text-gray-700">
+                    {order.table ? `Mesa ${order.table.name}` : (order.customer?.name || 'Balcão')}
                   </td>
-                  <td className="px-6 py-4">{formatDate(order.createdAt)}</td>
-                  <td className="px-6 py-4 text-right font-semibold">{formatCurrency(order.total)}</td>
+                  <td className="px-6 py-4 text-gray-600">{formatDate(order.createdAt)}</td>
+                  <td className="px-6 py-4 text-right font-bold text-gray-900">{formatCurrency(order.total)}</td>
                   {canManageOrders && (
                     <td className="px-6 py-4 text-right">
-                      <button className="text-gray-500 hover:text-gray-800">
-                        <MoreVertical size={18} />
-                      </button>
+                      <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <button className="p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+                          <MoreVertical size={18} />
+                        </button>
+                      </div>
                     </td>
                   )}
                 </tr>
@@ -99,16 +103,16 @@ export function OrdersTable({ orders }: OrdersTableProps) {
           </table>
         </div>
         {/* Pagination Placeholder */}
-        <div className="flex justify-between items-center p-4 border-t">
+        <div className="flex justify-between items-center p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
           <span className="text-sm text-gray-700">
             Mostrando 1 a {ordersList.length} de {total} pedidos
           </span>
           <div className="inline-flex items-center space-x-2">
-            <button className="p-2 text-gray-500 rounded-md hover:bg-gray-100 disabled:opacity-50" disabled>
+            <button className="btn-ghost" disabled>
               <ChevronLeft size={20} />
             </button>
-            <span className='text-sm font-medium'>Página 1 de 1</span>
-            <button className="p-2 text-gray-500 rounded-md hover:bg-gray-100 disabled:opacity-50" disabled>
+            <span className='text-sm font-medium text-gray-700'>Página 1 de 1</span>
+            <button className="btn-ghost" disabled>
               <ChevronRight size={20} />
             </button>
           </div>

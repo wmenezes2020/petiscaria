@@ -2,13 +2,13 @@
 import { cva, VariantProps } from 'class-variance-authority';
 
 const badgeVariants = cva(
-  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide',
+  'inline-flex items-center px-3 py-1 rounded-md text-sm font-medium',
   {
     variants: {
       level: {
-        OK: 'bg-green-100 text-green-800',
-        LOW: 'bg-yellow-100 text-yellow-800',
-        OUT: 'bg-red-100 text-red-800',
+        OK: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20',
+        LOW: 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-600/20',
+        OUT: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20',
       },
     },
     defaultVariants: {

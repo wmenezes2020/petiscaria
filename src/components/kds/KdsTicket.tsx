@@ -29,51 +29,62 @@ export function KdsTicket({ order, onUpdateStatus }: KdsTicketProps) {
   const getNextAction = () => {
     switch (order.status) {
       case 'PENDING':
-        return { text: 'Iniciar Preparo', nextStatus: 'PREPARING' as OrderStatus };
+        return { text: 'Iniciar Preparo', nextStatus: 'PREPARING' as OrderStatus, color: 'bg-orange-600 hover:bg-orange-700' };
       case 'PREPARING':
-        return { text: 'Marcar como Pronto', nextStatus: 'READY' as OrderStatus };
+        return { text: 'Marcar como Pronto', nextStatus: 'READY' as OrderStatus, color: 'bg-blue-600 hover:bg-blue-700' };
       case 'READY':
-        return { text: 'Marcar como Entregue', nextStatus: 'DELIVERED' as OrderStatus };
+        return { text: 'Marcar como Entregue', nextStatus: 'DELIVERED' as OrderStatus, color: 'bg-green-600 hover:bg-green-700' };
       default:
         return null;
     }
   };
 
+  const getBorderColor = () => {
+    switch (order.status) {
+      case 'PENDING': return 'border-orange-500';
+      case 'PREPARING': return 'border-blue-500';
+      case 'READY': return 'border-green-500';
+      default: return 'border-gray-300';
+    }
+  };
+
   const action = getNextAction();
+  const borderColor = getBorderColor();
 
   return (
-    <div className="bg-white rounded-lg shadow-lg border-t-8 border-orange-500 w-80 flex-shrink-0">
+    <div className={`bg-white rounded-xl shadow-lg border border-gray-100 border-t-4 ${borderColor} w-80 flex-shrink-0 overflow-hidden`}>
       {/* Header */}
-      <div className="p-4 border-b bg-gray-50">
-        <div className="flex justify-between items-center">
-          <h3 className="text-2xl font-extrabold text-gray-800">
-            {order.table ? `Mesa ${order.table.number}` : 'Balcão'}
-          </h3>
-          <div className="flex items-center text-lg font-bold text-orange-600">
-            <Clock size={20} className="mr-2" />
-            <span>{timeElapsed} min</span>
-          </div>
+      <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+        <h3 className="text-xl font-bold text-gray-900">
+          {order.table ? `Mesa ${order.table.name}` : 'Balcão'}
+        </h3>
+        <div className="flex items-center text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
+          <Clock size={16} className="mr-1.5 text-gray-400" />
+          <span>{timeElapsed} min</span>
         </div>
       </div>
 
       {/* Items */}
       <div className="p-4 space-y-3">
         {order.items.map((item) => (
-          <div key={item.id} className="flex items-center">
-            <span className="text-2xl font-bold text-gray-900 mr-3">{item.quantity}x</span>
-            <p className="text-xl text-gray-700">{item.name}</p>
+          <div key={item.id} className="flex items-start">
+            <span className="text-lg font-bold text-gray-900 mr-2.5 flex-shrink-0">{item.quantity}x</span>
+            <div>
+              <p className="text-base text-gray-800 font-medium leading-tight">{item.name}</p>
+              {item.notes && <p className="text-sm text-gray-500 mt-0.5 italic">- {item.notes}</p>}
+            </div>
           </div>
         ))}
       </div>
 
       {/* Action Button */}
       {action && (
-        <div className="p-3 bg-gray-50">
+        <div className="p-4 bg-gray-50 border-t border-gray-100">
           <button
             onClick={() => onUpdateStatus(order.id, action.nextStatus)}
-            className="w-full py-3 px-4 bg-blue-600 text-white font-bold text-lg rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
+            className="btn-primary w-full flex items-center justify-center py-2.5 text-lg"
           >
-            {action.text} <ArrowRight size={22} className="ml-3" />
+            {action.text} <ArrowRight size={20} className="ml-2.5" />
           </button>
         </div>
       )}

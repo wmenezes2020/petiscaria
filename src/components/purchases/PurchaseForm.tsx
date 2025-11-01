@@ -5,6 +5,8 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Purchase, PurchaseItem, Supplier, IngredientResponse, createPurchase, updatePurchase, getSuppliers, getIngredients } from '@/lib/api';
+import { createPortal } from 'react-dom';
+import { X, Truck, Calendar, DollarSign, Package, Calculator, Trash2, Plus, XCircle, Info, Loader2, Save, PlusCircle } from 'lucide-react';
 
 const purchaseItemSchema = z.object({
     ingredientId: z.string().uuid('Selecione um ingrediente'),
@@ -138,247 +140,300 @@ export default function PurchaseForm({ purchase, onClose, onSuccess }: PurchaseF
         }).format(value);
     };
 
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-semibold">
+    useEffect(() => {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'unset';
+        };
+    }, [onClose]);
+
+    return createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
+            <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] flex flex-col">
+                <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-gray-900">
                         {purchase ? 'Editar Compra' : 'Nova Compra'}
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600"
-                    >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+                    </h3>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                            {error}
-                        </div>
-                    )}
+                <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col">
+                    <div className="p-6 space-y-5 flex-1 overflow-y-auto">
+                        {error && (
+                            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-4">
+                                <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                                <div className="flex-1">
+                                    <h3 className="text-sm font-semibold text-red-800">Erro:</h3>
+                                    <p className="mt-1 text-sm text-red-700">{error}</p>
+                                </div>
+                            </div>
+                        )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Fornecedor *
-                            </label>
-                            <select
-                                {...register('supplierId')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">Selecione um fornecedor</option>
-                                {suppliers.map((supplier) => (
-                                    <option key={supplier.id} value={supplier.id}>
-                                        {supplier.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.supplierId && (
-                                <p className="text-red-500 text-sm mt-1">{errors.supplierId.message}</p>
-                            )}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div>
+                                <label htmlFor="supplierId" className="input-label">
+                                    Fornecedor *
+                                </label>
+                                <div className="relative">
+                                    <Truck className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <select
+                                        {...register('supplierId')}
+                                        id="supplierId"
+                                        className="input-field pl-10"
+                                    >
+                                        <option value="">Selecione um fornecedor</option>
+                                        {(suppliers || []).map((supplier) => (
+                                            <option key={supplier.id} value={supplier.id}>
+                                                {supplier.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {errors.supplierId && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.supplierId.message}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label htmlFor="purchaseDate" className="input-label">
+                                    Data da Compra *
+                                </label>
+                                <div className="relative">
+                                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="date"
+                                        {...register('purchaseDate')}
+                                        id="purchaseDate"
+                                        className="input-field pl-10"
+                                    />
+                                </div>
+                                {errors.purchaseDate && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.purchaseDate.message}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label htmlFor="expectedDeliveryDate" className="input-label">
+                                    Data de Entrega Esperada
+                                </label>
+                                <div className="relative">
+                                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="date"
+                                        {...register('expectedDeliveryDate')}
+                                        id="expectedDeliveryDate"
+                                        className="input-field pl-10"
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Data da Compra *
+                            <label htmlFor="notes" className="input-label">
+                                Observações
                             </label>
-                            <input
-                                type="date"
-                                {...register('purchaseDate')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            <textarea
+                                {...register('notes')}
+                                id="notes"
+                                rows={3}
+                                className="input-field"
+                                placeholder="Observações sobre a compra"
                             />
-                            {errors.purchaseDate && (
-                                <p className="text-red-500 text-sm mt-1">{errors.purchaseDate.message}</p>
-                            )}
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Data de Entrega Esperada
-                            </label>
-                            <input
-                                type="date"
-                                {...register('expectedDeliveryDate')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                    </div>
+                        <div className="border-t border-gray-100 pt-5 space-y-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">Itens da Compra</h3>
+                                <button
+                                    type="button"
+                                    onClick={addItem}
+                                    className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-medium text-sm px-3 py-2 rounded-md transition-colors duration-200"
+                                >
+                                    <Plus size={16} /> Adicionar Item
+                                </button>
+                            </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Observações
-                        </label>
-                        <textarea
-                            {...register('notes')}
-                            rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Observações sobre a compra"
-                        />
-                    </div>
-
-                    <div>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-medium">Itens da Compra</h3>
-                            <button
-                                type="button"
-                                onClick={addItem}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm"
-                            >
-                                + Adicionar Item
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            {fields.map((field, index) => (
-                                <div key={field.id} className="border border-gray-200 rounded-lg p-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Ingrediente *
-                                            </label>
-                                            <select
-                                                {...register(`items.${index}.ingredientId`)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            >
-                                                <option value="">Selecione um ingrediente</option>
-                                                {ingredients.map((ingredient) => (
-                                                    <option key={ingredient.id} value={ingredient.id}>
-                                                        {ingredient.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {errors.items?.[index]?.ingredientId && (
-                                                <p className="text-red-500 text-sm mt-1">
-                                                    {errors.items[index]?.ingredientId?.message}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Quantidade *
-                                            </label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                {...register(`items.${index}.quantity`)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="0.00"
-                                            />
-                                            {errors.items?.[index]?.quantity && (
-                                                <p className="text-red-500 text-sm mt-1">
-                                                    {errors.items[index]?.quantity?.message}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Preço Unitário *
-                                            </label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                {...register(`items.${index}.unitCost`)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="0.00"
-                                            />
-                                            {errors.items?.[index]?.unitCost && (
-                                                <p className="text-red-500 text-sm mt-1">
-                                                    {errors.items[index]?.unitCost?.message}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        <div className="flex items-end space-x-2">
-                                            <div className="flex-1">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Observações
+                            <div className="space-y-4">
+                                {fields.map((field, index) => (
+                                    <div key={field.id} className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                                            <div>
+                                                <label htmlFor={`items.${index}.ingredientId`} className="input-label">
+                                                    Ingrediente *
                                                 </label>
-                                                <input
-                                                    type="text"
-                                                    {...register(`items.${index}.notes`)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    placeholder="Observações do item"
-                                                />
+                                                <div className="relative">
+                                                    <Package className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                                    <select
+                                                        {...register(`items.${index}.ingredientId`)}
+                                                        id={`items.${index}.ingredientId`}
+                                                        className="input-field pl-10"
+                                                    >
+                                                        <option value="">Selecione um ingrediente</option>
+                                                        {(ingredients || []).map((ingredient) => (
+                                                            <option key={ingredient.id} value={ingredient.id}>
+                                                                {ingredient.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                {errors.items?.[index]?.ingredientId && (
+                                                    <p className="text-red-500 text-sm mt-1">
+                                                        {errors.items[index]?.ingredientId?.message}
+                                                    </p>
+                                                )}
                                             </div>
-                                            {fields.length > 1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeItem(index)}
-                                                    className="text-red-600 hover:text-red-800 p-2"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            )}
+
+                                            <div>
+                                                <label htmlFor={`items.${index}.quantity`} className="input-label">
+                                                    Quantidade *
+                                                </label>
+                                                <div className="relative">
+                                                    <Calculator className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        {...register(`items.${index}.quantity`)}
+                                                        id={`items.${index}.quantity`}
+                                                        className="input-field pl-10"
+                                                        placeholder="0.00"
+                                                    />
+                                                </div>
+                                                {errors.items?.[index]?.quantity && (
+                                                    <p className="text-red-500 text-sm mt-1">
+                                                        {errors.items[index]?.quantity?.message}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <label htmlFor={`items.${index}.unitCost`} className="input-label">
+                                                    Preço Unitário *
+                                                </label>
+                                                <div className="relative">
+                                                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        {...register(`items.${index}.unitCost`)}
+                                                        id={`items.${index}.unitCost`}
+                                                        className="input-field pl-10"
+                                                        placeholder="0.00"
+                                                    />
+                                                </div>
+                                                {errors.items?.[index]?.unitCost && (
+                                                    <p className="text-red-500 text-sm mt-1">
+                                                        {errors.items[index]?.unitCost?.message}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-end gap-2">
+                                                <div className="flex-1">
+                                                    <label htmlFor={`items.${index}.notes`} className="input-label">
+                                                        Observações
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        {...register(`items.${index}.notes`)}
+                                                        id={`items.${index}.notes`}
+                                                        className="input-field"
+                                                        placeholder="Observações do item"
+                                                    />
+                                                </div>
+                                                {fields.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeItem(index)}
+                                                        className="p-2 text-red-500 hover:text-red-700 rounded-md transition-colors duration-200"
+                                                    >
+                                                        <Trash2 size={20} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
+                                ))}
+                            </div>
+
+                            {errors.items && typeof errors.items.message === 'string' && (
+                                <p className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2">
+                                    <Info size={18} className="text-red-500" />
+                                    {errors.items.message}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 border-t border-gray-100 pt-5 mt-5">
+                            <div>
+                                <label htmlFor="taxAmount" className="input-label">
+                                    Valor dos Impostos
+                                </label>
+                                <div className="relative">
+                                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        {...register('taxAmount')}
+                                        id="taxAmount"
+                                        className="input-field pl-10"
+                                        placeholder="0.00"
+                                    />
                                 </div>
-                            ))}
-                        </div>
-
-                        {errors.items && (
-                            <p className="text-red-500 text-sm mt-1">{errors.items.message}</p>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Valor dos Impostos
-                            </label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                {...register('taxAmount')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="0.00"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Subtotal:</span>
-                                <span className="font-medium">{formatCurrency(calculateSubtotal())}</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Impostos:</span>
-                                <span className="font-medium">{formatCurrency(watch('taxAmount') || 0)}</span>
-                            </div>
-                            <div className="flex justify-between border-t pt-2">
-                                <span className="text-lg font-semibold">Total:</span>
-                                <span className="text-lg font-semibold text-blue-600">
-                                    {formatCurrency(calculateTotal())}
-                                </span>
+
+                            <div className="space-y-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <div className="flex justify-between">
+                                    <span className="text-base text-gray-700">Subtotal:</span>
+                                    <span className="font-medium text-gray-900">{formatCurrency(calculateSubtotal())}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-base text-gray-700">Impostos:</span>
+                                    <span className="font-medium text-gray-900">{formatCurrency(watch('taxAmount') || 0)}</span>
+                                </div>
+                                <div className="flex justify-between border-t border-gray-100 pt-3 mt-3">
+                                    <span className="text-xl font-semibold text-gray-900">Total:</span>
+                                    <span className="text-xl font-bold text-indigo-700">
+                                        {formatCurrency(calculateTotal())}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex justify-end space-x-3 pt-4">
+                    <div className="px-6 py-4 border-t border-gray-100 flex justify-end space-x-3 bg-gray-50 rounded-b-2xl -mx-6 -mb-6">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                            className="btn-secondary"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                            className="btn-primary"
                         >
-                            {isSubmitting ? 'Salvando...' : purchase ? 'Atualizar' : 'Criar'}
+                            {isSubmitting ? (
+                                <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Salvando...</>
+                            ) : purchase ? (
+                                <><Save className="h-5 w-5 mr-2" /> Atualizar</>
+                            ) : (
+                                <><PlusCircle className="h-5 w-5 mr-2" /> Criar</>
+                            )}
                         </button>
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

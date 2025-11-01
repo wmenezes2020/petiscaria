@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getCashMovements, getCurrentCashRegister, CashMovementResponse, CashRegisterResponse } from '@/lib/api';
-import { Loader2 } from 'lucide-react';
+import { Loader2, XCircle } from 'lucide-react';
 import { ClosedCashRegister } from '@/components/financial/ClosedCashRegister';
 import { OpenCashRegister } from '@/components/financial/OpenCashRegister';
 
@@ -73,19 +73,36 @@ export default function FinanceiroPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-full">
-        <Loader2 className="animate-spin h-8 w-8 text-orange-500" />
+      <div className="flex justify-center items-center h-full min-h-[500px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando dados financeiros...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
-    return <div className="text-red-500 text-center">{error}</div>;
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl mb-6 flex items-start gap-3">
+        <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+        <div className="flex-1">
+            <h3 className="font-semibold text-red-800">Erro</h3>
+            <p>{error}</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Gestão de Caixa</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Gestão de Caixa</h1>
+          <p className="text-sm text-gray-600">Acompanhe o fluxo de caixa, registre movimentações e visualize o saldo atual</p>
+        </div>
+      </div>
 
       {cashRegister ? (
         <OpenCashRegister

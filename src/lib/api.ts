@@ -250,29 +250,196 @@ export const getDashboardStats = async (): Promise<DashboardData> => {
 // Tables API
 // =============================================
 
-import { TableStatus } from '@/components/tables/TableStatusBadge';
-
 export interface TableResponse {
   id: string;
   name: string;
   capacity: number;
-  areaId: string;
-  locationId: string;
+  shape?: string;
+  x?: number;
+  y?: number;
+  area?: string | null;
+  areaId?: string | null;
+  locationId?: string | null;
+  description?: string | null;
   isActive: boolean;
+  isSmoking?: boolean;
+  isOutdoor?: boolean;
+  minimumOrder?: number;
+  status: 'available' | 'occupied' | 'reserved' | 'cleaning' | 'out_of_service' | string;
   isAvailable: boolean;
-  description?: string;
-  coordinates?: {
-    x: number;
-    y: number;
-  };
+  currentOrderId?: string | null;
+  currentCustomerCount?: number;
+  openedAt?: string | null;
+  metadata?: Record<string, any> | null;
   companyId: string;
   createdAt: string;
   updatedAt: string;
 }
 
+export interface CommandOrderItemResponse {
+  id: string;
+  productId?: string;
+  productName: string;
+  productDescription?: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice: number;
+  discount?: number;
+  tax?: number;
+  notes?: string;
+  specialInstructions?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CommandOrderResponse {
+  id: string;
+  status: string;
+  channel: string;
+  notes?: string;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+  numberOfPeople: number;
+  tableId?: string;
+  customerId?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  table?: {
+    id: string;
+    number: string;
+    name?: string;
+  };
+  customer?: {
+    id: string;
+    name: string;
+    phone?: string;
+  };
+  orderItems: CommandOrderItemResponse[];
+}
+
+export interface TableCommandPayment {
+  id: string;
+  amount: number;
+  paymentMethod: string;
+  status: string;
+  createdAt: string;
+  processedAt?: string | null;
+}
+
+export interface TableCommandResponse {
+  order: CommandOrderResponse;
+  table: TableResponse;
+  payment?: TableCommandPayment;
+}
+
+const normalizeNumber = (value: any, fallback = 0) => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    return Number.isNaN(parsed) ? fallback : parsed;
+  }
+  return fallback;
+};
+
+const normalizeDate = (value: any): string | null => {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
+};
+
+const normalizeTable = (table: any): TableResponse => ({
+  id: table.id,
+  name: table.name,
+  capacity: normalizeNumber(table.capacity, 0),
+  shape: table.shape ?? undefined,
+  x: table.x !== undefined ? Number(table.x) : undefined,
+  y: table.y !== undefined ? Number(table.y) : undefined,
+  area: table.area ?? table.areaName ?? null,
+  areaId: table.areaId ?? null,
+  locationId: table.locationId ?? null,
+  description: table.description ?? null,
+  isActive: Boolean(table.isActive ?? true),
+  isSmoking: table.isSmoking ?? false,
+  isOutdoor: table.isOutdoor ?? false,
+  minimumOrder: table.minimumOrder !== undefined ? Number(table.minimumOrder) : undefined,
+  status: (table.status ?? 'available') as TableResponse['status'],
+  isAvailable: (table.status ?? 'available') === 'available',
+  currentOrderId: table.currentOrderId ?? null,
+  currentCustomerCount: table.currentCustomerCount !== undefined ? Number(table.currentCustomerCount) : undefined,
+  openedAt: normalizeDate(table.openedAt),
+  metadata: table.metadata ?? null,
+  companyId: table.companyId,
+  createdAt: normalizeDate(table.createdAt) ?? new Date().toISOString(),
+  updatedAt: normalizeDate(table.updatedAt) ?? new Date().toISOString(),
+});
+
+const normalizeCommandPayment = (payment: any): TableCommandPayment => ({
+  id: payment.id,
+  amount: normalizeNumber(payment.amount, 0),
+  paymentMethod: payment.paymentMethod ?? payment.method ?? 'cash',
+  status: payment.status ?? 'completed',
+  createdAt: normalizeDate(payment.createdAt) ?? new Date().toISOString(),
+  processedAt: normalizeDate(payment.processedAt),
+});
+
+const normalizeCommandOrder = (order: any): CommandOrderResponse => ({
+  id: order.id,
+  status: order.status,
+  channel: order.channel,
+  notes: order.notes ?? undefined,
+  subtotal: normalizeNumber(order.subtotal, 0),
+  discount: normalizeNumber(order.discount, 0),
+  tax: normalizeNumber(order.tax, 0),
+  total: normalizeNumber(order.total, 0),
+  numberOfPeople: normalizeNumber(order.numberOfPeople, 0),
+  tableId: order.tableId ?? undefined,
+  customerId: order.customerId ?? undefined,
+  createdBy: order.createdBy,
+  createdAt: normalizeDate(order.createdAt) ?? new Date().toISOString(),
+  updatedAt: normalizeDate(order.updatedAt) ?? new Date().toISOString(),
+  table: order.table ? {
+    id: order.table.id,
+    number: order.table.number,
+    name: order.table.name ?? undefined,
+  } : undefined,
+  customer: order.customer ? {
+    id: order.customer.id,
+    name: order.customer.name,
+    phone: order.customer.phone ?? undefined,
+  } : undefined,
+  orderItems: Array.isArray(order.orderItems)
+    ? order.orderItems.map((item: any) => ({
+        id: item.id,
+        productId: item.productId ?? undefined,
+        productName: item.productName,
+        productDescription: item.productDescription ?? undefined,
+        unitPrice: normalizeNumber(item.unitPrice, 0),
+        quantity: normalizeNumber(item.quantity, 0),
+        totalPrice: normalizeNumber(item.totalPrice, normalizeNumber(item.unitPrice, 0) * normalizeNumber(item.quantity, 0)),
+        discount: normalizeNumber(item.discount, 0),
+        tax: normalizeNumber(item.tax, 0),
+        notes: item.notes ?? undefined,
+        specialInstructions: item.specialInstructions ?? undefined,
+        createdAt: normalizeDate(item.createdAt) ?? undefined,
+        updatedAt: normalizeDate(item.updatedAt) ?? undefined,
+      }))
+    : [],
+});
+
 export const getTables = async (): Promise<TableResponse[]> => {
   try {
-    return await apiClient.get<TableResponse[]>('/tables');
+    const data = await apiClient.get<any>('/tables');
+    if (data && Array.isArray(data.tables)) {
+      return data.tables.map(normalizeTable);
+    }
+    if (Array.isArray(data)) {
+      return data.map(normalizeTable);
+    }
+    return [];
   } catch (error) {
     console.error('Erro ao buscar mesas:', error);
     throw error;
@@ -330,6 +497,57 @@ export const deleteTable = async (id: string): Promise<void> => {
   }
 };
 
+export const openTableCommand = async (tableId: string, data: {
+  numberOfPeople: number;
+  customerId?: string;
+  notes?: string;
+  items?: CreateOrderPayload['orderItems'];
+}): Promise<TableCommandResponse> => {
+  try {
+    const response = await apiClient.post<TableCommandResponse>(`/tables/${tableId}/open`, data);
+    return {
+      order: normalizeCommandOrder(response.order),
+      table: normalizeTable(response.table),
+    };
+  } catch (error) {
+    console.error('Erro ao abrir comanda da mesa:', error);
+    throw error;
+  }
+};
+
+export const addItemsToTableCommand = async (tableId: string, data: {
+  items: CreateOrderPayload['orderItems'];
+}): Promise<CommandOrderResponse> => {
+  try {
+    const response = await apiClient.post<CommandOrderResponse>(`/tables/${tableId}/items`, data);
+    return normalizeCommandOrder(response);
+  } catch (error) {
+    console.error('Erro ao adicionar itens na comanda da mesa:', error);
+    throw error;
+  }
+};
+
+export const closeTableCommand = async (tableId: string, data: {
+  status?: 'open' | 'preparing' | 'ready' | 'delivered' | 'closed' | 'cancelled';
+  notes?: string;
+  cancellationReason?: string;
+  registerPayment?: boolean;
+  paymentMethod?: 'cash' | 'pix' | 'credit_card';
+  paymentAmount?: number;
+}): Promise<TableCommandResponse> => {
+  try {
+    const response = await apiClient.post<TableCommandResponse>(`/tables/${tableId}/close`, data);
+    return {
+      order: normalizeCommandOrder(response.order),
+      table: normalizeTable(response.table),
+      payment: response.payment ? normalizeCommandPayment(response.payment) : undefined,
+    };
+  } catch (error) {
+    console.error('Erro ao fechar comanda da mesa:', error);
+    throw error;
+  }
+};
+
 export interface LocationResponse {
   id: string;
   name: string;
@@ -349,7 +567,6 @@ export interface AreaResponse {
   id: string;
   name: string;
   description?: string;
-  locationId: string;
   companyId: string;
   createdAt: string;
   updatedAt: string;
@@ -408,7 +625,7 @@ export const getAreas = async (): Promise<AreaResponse[]> => {
   }
 };
 
-export const createArea = async (data: { name: string; description?: string; locationId: string }): Promise<AreaResponse> => {
+export const createArea = async (data: { name: string; description?: string }): Promise<AreaResponse> => {
   try {
     return await apiClient.post<AreaResponse>('/areas', data);
   } catch (error) {
@@ -417,7 +634,7 @@ export const createArea = async (data: { name: string; description?: string; loc
   }
 };
 
-export const updateArea = async (id: string, data: { name: string; description?: string; locationId?: string }): Promise<AreaResponse> => {
+export const updateArea = async (id: string, data: { name?: string; description?: string }): Promise<AreaResponse> => {
   try {
     return await apiClient.patch<AreaResponse>(`/areas/${id}`, data);
   } catch (error) {
@@ -498,19 +715,49 @@ export const getOrders = async (): Promise<OrderResponse[]> => {
   }
 };
 
-export const createOrder = async (data: { 
-  customerId: string; 
-  tableId: string; 
-  items: Array<{
-    productId: string;
-    quantity: number;
-    notes?: string;
-  }>;
-  status: 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  estimatedTime?: number;
+export const getOrder = async (id: string): Promise<CommandOrderResponse> => {
+  try {
+    const response = await apiClient.get<CommandOrderResponse>(`/orders/${id}`);
+    return normalizeCommandOrder(response);
+  } catch (error) {
+    console.error('Erro ao buscar pedido:', error);
+    throw error;
+  }
+};
+
+export type CreateOrderPayload = {
+  channel: 'table' | 'counter' | 'delivery' | 'takeaway';
+  numberOfPeople: number;
   notes?: string;
-}): Promise<OrderResponse> => {
+  discount?: number;
+  tax?: number;
+  tableId?: string;
+  customerId?: string;
+  orderItems: Array<{
+    productId?: string;
+    productName: string;
+    productDescription?: string;
+    unitPrice: number;
+    quantity: number;
+    discount?: number;
+    tax?: number;
+    notes?: string;
+    specialInstructions?: string;
+    modifications?: Array<{
+      optionId: string;
+      optionName: string;
+      extraPrice: number;
+    }>;
+  }>;
+  metadata?: {
+    source?: string;
+    deviceInfo?: string;
+    location?: string;
+    specialInstructions?: string;
+  };
+};
+
+export const createOrder = async (data: CreateOrderPayload): Promise<OrderResponse> => {
   try {
     return await apiClient.post<OrderResponse>('/orders', data);
   } catch (error) {
@@ -614,16 +861,26 @@ export interface MenuCategoryResponse {
 
 export const getMenuItems = async (): Promise<MenuItemResponse[]> => {
     try {
-        // Assuming the planning document's endpoint `/menu/items`
-        // In a real scenario, this might be paginated.
-        const response = await apiClient.get<MenuItemResponse[]>('/products'); // Corrected based on likely backend module name
-        
-        // Garantir que sempre retorne um array
-        return Array.isArray(response) ? response : [];
+        const data = await apiClient.get<any>('/products');
+
+        let items: any[] = [];
+        if (data && Array.isArray(data.products)) {
+            items = data.products;
+        } else if (Array.isArray(data?.data)) {
+            items = data.data;
+        } else if (Array.isArray(data)) {
+            items = data;
+        }
+
+        return items.map((item) => ({
+            ...item,
+            price: typeof item.price === 'string' ? parseFloat(item.price) : Number(item.price ?? 0),
+            preparationTime: typeof item.preparationTime === 'string' ? parseInt(item.preparationTime, 10) : item.preparationTime,
+            imageUrl: item.imageUrl ?? item.mainImage ?? null,
+            mainImage: item.mainImage ?? item.imageUrl ?? null,
+        })) as MenuItemResponse[];
     } catch (error) {
         console.error('Erro ao buscar itens do menu:', error);
-        
-        // Retornar dados mock em caso de erro para demonstração
         return [
             {
                 id: '1',
@@ -641,7 +898,7 @@ export const getMenuItems = async (): Promise<MenuItemResponse[]> => {
                 updatedAt: new Date().toISOString()
             },
             {
-                id: '2', 
+                id: '2',
                 name: 'Batata Frita',
                 description: 'Porção de batata frita crocante',
                 price: 12.50,
@@ -694,16 +951,181 @@ export const deleteMenuItem = async (id: string): Promise<void> => {
 
 export interface IngredientResponse {
     id: string;
+    companyId?: string;
+    categoryId: string;
+    category?: {
+        id: string;
+        name: string;
+    };
     name: string;
-    quantity: number;
-    unit: string; // e.g., 'kg', 'L', 'un'
-    lowStockThreshold: number;
-    criticalStockThreshold: number;
+    sku?: string;
+    description?: string;
+    ingredientType?: string;
+    unit: string;
+    currentStock: number;
+    minStock: number;
+    maxStock: number;
+    unitCost: number;
+    unitPrice: number;
+    supplierName?: string;
+    brand?: string;
+    barcode?: string;
+    allergens?: string;
+    nutritionalInfo?: Record<string, any> | null;
+    storageConditions?: Record<string, any> | null;
+    isActive?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+    totalValue?: number;
+    stockPercentage?: number;
+    lowStock?: boolean;
+    overStock?: boolean;
 }
 
+interface IngredientListResponse {
+    ingredients?: any[];
+    data?: any[];
+    total?: number;
+}
+
+const normalizeIngredient = (ingredient: any): IngredientResponse => {
+    if (!ingredient) {
+        return {
+            id: '',
+            categoryId: '',
+            name: '',
+            unit: 'unit',
+            currentStock: 0,
+            minStock: 0,
+            maxStock: 0,
+            unitCost: 0,
+            unitPrice: 0,
+        };
+    }
+
+    const parseNumber = (value: any, fallback = 0) => {
+        if (typeof value === 'number') return value;
+        if (typeof value === 'string') {
+            const parsed = parseFloat(value);
+            return Number.isNaN(parsed) ? fallback : parsed;
+        }
+        return fallback;
+    };
+
+    return {
+        id: ingredient.id,
+        companyId: ingredient.companyId,
+        categoryId: ingredient.categoryId ?? ingredient.category?.id ?? '',
+        category: ingredient.category,
+        name: ingredient.name,
+        sku: ingredient.sku,
+        description: ingredient.description,
+        ingredientType: ingredient.ingredientType,
+        unit: ingredient.unit ?? 'unit',
+        currentStock: parseNumber(ingredient.currentStock ?? ingredient.quantity, 0),
+        minStock: parseNumber(ingredient.minStock ?? ingredient.lowStockThreshold, 0),
+        maxStock: parseNumber(ingredient.maxStock ?? ingredient.maxStockThreshold, 0),
+        unitCost: parseNumber(ingredient.unitCost, 0),
+        unitPrice: parseNumber(ingredient.unitPrice, 0),
+        supplierName: ingredient.supplierName,
+        brand: ingredient.brand,
+        barcode: ingredient.barcode,
+        allergens: ingredient.allergens,
+        nutritionalInfo: ingredient.nutritionalInfo ?? null,
+        storageConditions: ingredient.storageConditions ?? null,
+        isActive: ingredient.isActive,
+        createdAt: ingredient.createdAt,
+        updatedAt: ingredient.updatedAt,
+        totalValue: parseNumber(ingredient.totalValue, parseNumber(ingredient.currentStock, 0) * parseNumber(ingredient.unitCost, 0)),
+        stockPercentage: parseNumber(ingredient.stockPercentage, 0),
+        lowStock: ingredient.lowStock,
+        overStock: ingredient.overStock,
+    };
+};
+
+const normalizeIngredientArray = (data: any): IngredientResponse[] => {
+    if (!data) return [];
+    if (Array.isArray(data)) {
+        return data.map(normalizeIngredient);
+    }
+    if (Array.isArray(data.ingredients)) {
+        return data.ingredients.map(normalizeIngredient);
+    }
+    if (Array.isArray(data.data)) {
+        return data.data.map(normalizeIngredient);
+    }
+    return [];
+};
+
 export const getIngredients = async (): Promise<IngredientResponse[]> => {
-    // Based on the backend module, the endpoint is likely /ingredients or /stock
-    return apiClient.get<IngredientResponse[]>('/ingredients');
+    try {
+        const response = await apiClient.get<IngredientListResponse | IngredientResponse[]>('/ingredients');
+        return normalizeIngredientArray(response);
+    } catch (error) {
+        console.error('Erro ao buscar ingredientes:', error);
+        throw error;
+    }
+};
+
+type CreateIngredientPayload = {
+    categoryId: string;
+    name: string;
+    sku?: string;
+    description?: string;
+    ingredientType?: string;
+    unit?: string;
+    currentStock?: number;
+    minStock?: number;
+    maxStock?: number;
+    unitCost?: number;
+    unitPrice?: number;
+    supplierName?: string;
+    brand?: string;
+    barcode?: string;
+    allergens?: string;
+    nutritionalInfo?: Record<string, any> | null;
+    storageConditions?: Record<string, any> | null;
+    isActive?: boolean;
+};
+
+type UpdateIngredientPayload = Partial<CreateIngredientPayload>;
+
+export const createIngredient = async (data: CreateIngredientPayload): Promise<IngredientResponse> => {
+    try {
+        const payload = {
+            ...data,
+            currentStock: data.currentStock ?? 0,
+            minStock: data.minStock ?? 0,
+            maxStock: data.maxStock ?? 0,
+            unitCost: data.unitCost ?? 0,
+            unitPrice: data.unitPrice ?? 0,
+        };
+
+        const response = await apiClient.post<IngredientResponse>('/ingredients', payload);
+        return normalizeIngredient(response);
+    } catch (error) {
+        console.error('Erro ao criar ingrediente:', error);
+        throw error;
+    }
+};
+
+export const updateIngredient = async (id: string, data: UpdateIngredientPayload): Promise<IngredientResponse> => {
+    try {
+        const response = await apiClient.patch<IngredientResponse>(`/ingredients/${id}`, data);
+        return normalizeIngredient(response);
+    } catch (error) {
+        console.error('Erro ao atualizar ingrediente:', error);
+        throw error;
+    }
+};
+
+export const deleteIngredient = async (id: string): Promise<void> => {
+    try {
+        await apiClient.delete(`/ingredients/${id}`);
+    } catch (error) {
+        console.error('Erro ao excluir ingrediente:', error);
+        throw error;
+    }
 };
 
 
@@ -796,9 +1218,11 @@ export const getTopSellingProducts = async (params: { startDate?: string, endDat
   const query = new URLSearchParams();
   if (params.startDate) query.append('startDate', params.startDate);
   if (params.endDate) query.append('endDate', params.endDate);
-  if (params.limit) query.append('limit', params.limit.toString());
-
-  return apiClient.get<TopSellingProductResponse[]>(`/reports/top-selling-products?${query.toString()}`);
+  const products = await apiClient.get<TopSellingProductResponse[]>(`/reports/top-selling-products?${query.toString()}`);
+  if (params.limit && params.limit > 0) {
+    return products.slice(0, params.limit);
+  }
+  return products;
 };
 
 export interface SalesByCategoryResponse {
@@ -845,14 +1269,25 @@ export enum MovementType {
 
 export interface CashMovementResponse {
   id: string;
+  companyId?: string;
+  cashRegisterId?: string;
+  userId?: string;
   movementType: MovementType;
   amount: number;
   description: string;
   notes?: string;
+  paymentMethod?: string;
+  previousBalance?: number;
+  newBalance?: number;
+  orderId?: string;
+  paymentId?: string;
+  metadata?: Record<string, any> | null;
   createdAt: string;
+  updatedAt?: string;
   user?: {
+    id?: string;
     name: string;
-  }
+  };
 }
 
 export interface CashRegisterResponse {
@@ -867,8 +1302,62 @@ export interface CashRegisterResponse {
   movements: CashMovementResponse[];
 }
 
+const normalizeCashMovement = (movement: any): CashMovementResponse => ({
+  id: movement.id,
+  companyId: movement.companyId ?? undefined,
+  cashRegisterId: movement.cashRegisterId ?? undefined,
+  userId: movement.userId ?? undefined,
+  movementType: movement.movementType,
+  amount: normalizeNumber(movement.amount, 0),
+  description: movement.description ?? 'Movimentação',
+  notes: movement.notes ?? undefined,
+  paymentMethod:
+    movement.paymentMethod ??
+    movement.metadata?.paymentMethod ??
+    movement.metadata?.customFields?.paymentMethod ??
+    undefined,
+  previousBalance: movement.previousBalance !== undefined && movement.previousBalance !== null
+    ? normalizeNumber(movement.previousBalance, 0)
+    : undefined,
+  newBalance: movement.newBalance !== undefined && movement.newBalance !== null
+    ? normalizeNumber(movement.newBalance, 0)
+    : undefined,
+  orderId: movement.orderId ?? movement.metadata?.orderId ?? undefined,
+  paymentId: movement.paymentId ?? movement.metadata?.paymentId ?? undefined,
+  metadata: movement.metadata ?? movement.customFields ?? null,
+  createdAt: normalizeDate(movement.createdAt) ?? new Date().toISOString(),
+  updatedAt: normalizeDate(movement.updatedAt) ?? undefined,
+  user: movement.user
+    ? {
+        id: movement.user.id ?? undefined,
+        name: movement.user.name ?? 'Usuário',
+      }
+    : undefined,
+});
+
+const normalizeCashRegister = (cashRegister: any): CashRegisterResponse => ({
+  id: cashRegister.id,
+  openingBalance: normalizeNumber(cashRegister.openingBalance, 0),
+  closingBalance:
+    cashRegister.closingBalance !== undefined && cashRegister.closingBalance !== null
+      ? normalizeNumber(cashRegister.closingBalance, 0)
+      : undefined,
+  expectedBalance:
+    cashRegister.expectedBalance !== undefined && cashRegister.expectedBalance !== null
+      ? normalizeNumber(cashRegister.expectedBalance, 0)
+      : undefined,
+  status: cashRegister.status,
+  openedAt: normalizeDate(cashRegister.openedAt) ?? new Date().toISOString(),
+  closedAt: normalizeDate(cashRegister.closedAt) ?? undefined,
+  openedBy: cashRegister.openedBy ?? { id: '', name: 'Usuário' },
+  movements: Array.isArray(cashRegister.movements)
+    ? cashRegister.movements.map(normalizeCashMovement)
+    : [],
+});
+
 export const getCurrentCashRegister = async (): Promise<CashRegisterResponse> => {
-  return apiClient.get<CashRegisterResponse>('/cash-registers/current');
+  const data = await apiClient.get<any>('/cash-registers/current');
+  return normalizeCashRegister(data);
 };
 
 export const openCashRegister = async (data: { openingBalance: number, notes?: string }): Promise<CashRegisterResponse> => {
@@ -885,7 +1374,8 @@ export const createCashMovement = async (data: {
   description: string;
   notes?: string;
 }): Promise<CashMovementResponse> => {
-  return apiClient.post<CashMovementResponse>('/cash-registers/movements', data);
+  const response = await apiClient.post<any>('/cash-registers/movements', data);
+  return normalizeCashMovement(response);
 };
 
 export interface PaginatedMovementsResponse {
@@ -894,14 +1384,17 @@ export interface PaginatedMovementsResponse {
 }
 
 export const getCashMovements = async (
-  cashRegisterId: string, 
-  params: { page?: number, limit?: number }
+  cashRegisterId: string,
+  params: { page?: number; limit?: number },
 ): Promise<PaginatedMovementsResponse> => {
   const query = new URLSearchParams();
   if (params.page) query.append('page', params.page.toString());
   if (params.limit) query.append('limit', params.limit.toString());
-  
-  return apiClient.get<PaginatedMovementsResponse>(`/cash-registers/${cashRegisterId}/movements?${query.toString()}`);
+
+  const data = await apiClient.get<any>(`/cash-registers/${cashRegisterId}/movements?${query.toString()}`);
+  const movements = Array.isArray(data.movements) ? data.movements.map(normalizeCashMovement) : [];
+  const total = typeof data.total === 'number' ? data.total : movements.length;
+  return { movements, total };
 };
 
 
@@ -1042,7 +1535,8 @@ export interface CustomerResponse {
 
 export const getCustomers = async (): Promise<CustomerResponse[]> => {
   try {
-    return await apiClient.get<CustomerResponse[]>('/customers');
+    const response = await apiClient.get<PaginatedResponse<CustomerResponse>>('/customers');
+    return Array.isArray(response.data) ? response.data : []; // Garante que sempre retorne um array
   } catch (error) {
     console.error('Erro ao buscar clientes:', error);
     throw error;
@@ -1065,7 +1559,7 @@ export const createCustomer = async (data: {
     favoriteProducts?: string[];
     dietaryRestrictions?: string[];
     allergies?: string[];
-  }; 
+  };
 }): Promise<CustomerResponse> => {
   try {
     return await apiClient.post<CustomerResponse>('/customers', data);
@@ -1091,7 +1585,7 @@ export const updateCustomer = async (id: string, data: {
     favoriteProducts?: string[];
     dietaryRestrictions?: string[];
     allergies?: string[];
-  }; 
+  };
 }): Promise<CustomerResponse> => {
   try {
     return await apiClient.patch<CustomerResponse>(`/customers/${id}`, data);
@@ -1218,33 +1712,40 @@ export interface CategoryResponse {
   description?: string;
   image?: string;
   color?: string;
-  order: number;
+  sortOrder?: number; // opcional para compatibilidade
+  order?: number; // compatedvel com backend que retorna `order`
   isActive: boolean;
-  isVisible: boolean;
-  parentId?: string;
-  parentName?: string;
+  isFeatured: boolean; // Novo campo para categorias em destaque
+  metadata?: any; // Novo campo para dados adicionais
   companyId: string;
   createdAt: string;
   updatedAt: string;
   productCount?: number;
-  children?: CategoryResponse[];
 }
 
 export const getCategories = async (): Promise<CategoryResponse[]> => {
   try {
-    return await apiClient.get<CategoryResponse[]>('/categories');
+    const data = await apiClient.get<any>('/categories');
+    // Suporta tanto { categories: CategoryResponse[], total } quanto um array direto
+    if (data && Array.isArray(data.categories)) {
+      return data.categories as CategoryResponse[];
+    }
+    return Array.isArray(data) ? (data as CategoryResponse[]) : [];
   } catch (error) {
     console.error('Erro ao buscar categorias:', error);
     throw error;
   }
 };
 
-export const createCategory = async (data: { 
-  name: string; 
-  description?: string; 
-  image?: string; 
-  isActive: boolean; 
-  order: number; 
+export const createCategory = async (data: {
+  name: string;
+  description?: string;
+  image?: string;
+  order?: number; // usar `order` conforme backend
+  sortOrder?: number; // compatibilidade
+  isActive: boolean;
+  isFeatured?: boolean;
+  metadata?: any;
 }): Promise<CategoryResponse> => {
   try {
     return await apiClient.post<CategoryResponse>('/categories', data);
@@ -1254,12 +1755,15 @@ export const createCategory = async (data: {
   }
 };
 
-export const updateCategory = async (id: string, data: { 
-  name?: string; 
-  description?: string; 
-  image?: string; 
-  isActive?: boolean; 
-  order?: number; 
+export const updateCategory = async (id: string, data: {
+  name?: string;
+  description?: string;
+  image?: string;
+  order?: number;
+  sortOrder?: number;
+  isActive?: boolean;
+  isFeatured?: boolean;
+  metadata?: any;
 }): Promise<CategoryResponse> => {
   try {
     return await apiClient.patch<CategoryResponse>(`/categories/${id}`, data);
@@ -1278,12 +1782,17 @@ export const deleteCategory = async (id: string): Promise<void> => {
   }
 };
 
+// =============================================
+// Products API (antigo Menu API)
+// =============================================
+
 export interface ProductResponse {
   id: string;
   name: string;
   description?: string;
   price: number;
   categoryId: string;
+  categoryName?: string; // Adicionado para facilitar exibição
   imageUrl?: string;
   isAvailable: boolean;
   preparationTime?: number;
@@ -1299,57 +1808,85 @@ export interface ProductResponse {
   updatedAt: string;
 }
 
-export const getProducts = async (): Promise<{ products: ProductResponse[]; total: number }> => {
+export const getProducts = async (): Promise<ProductResponse[]> => {
   try {
-    return await apiClient.get<{ products: ProductResponse[]; total: number }>('/products');
+    const data = await apiClient.get<any>('/products');
+    let products: any[] = [];
+
+    if (data && Array.isArray(data.products)) {
+      products = data.products;
+    } else if (Array.isArray(data?.data)) {
+      products = data.data;
+    } else if (Array.isArray(data)) {
+      products = data;
+    }
+
+    return products.map((product) => ({
+      ...product,
+      price: typeof product.price === 'string' ? parseFloat(product.price) : Number(product.price ?? 0),
+      costPrice: typeof product.costPrice === 'string' ? parseFloat(product.costPrice) : (product.costPrice ?? undefined),
+      preparationTime: typeof product.preparationTime === 'string' ? parseInt(product.preparationTime, 10) : product.preparationTime,
+      stockQuantity: typeof product.stockQuantity === 'string' ? parseInt(product.stockQuantity, 10) : product.stockQuantity,
+      minStockLevel: typeof product.minStockLevel === 'string' ? parseInt(product.minStockLevel, 10) : product.minStockLevel,
+      maxStockLevel: typeof product.maxStockLevel === 'string' ? parseInt(product.maxStockLevel, 10) : product.maxStockLevel,
+      imageUrl: product.imageUrl ?? product.mainImage ?? null,
+    })) as ProductResponse[];
   } catch (error) {
     console.error('Erro ao buscar produtos:', error);
     throw error;
   }
 };
 
-export const createProduct = async (data: { 
-  name: string; 
-  description?: string; 
-  price: number; 
-  categoryId: string; 
-  imageUrl?: string; 
-  isAvailable: boolean; 
-  preparationTime?: number; 
-  allergens?: string[]; 
+export const createProduct = async (data: {
+  name: string;
+  description?: string;
+  price: number;
+  categoryId: string;
+  imageUrl?: string;
+  isAvailable: boolean;
+  preparationTime?: number;
+  allergens?: string[];
   nutritionalInfo?: {
     calories?: number;
     protein?: number;
     carbs?: number;
     fat?: number;
-  }; 
+  };
 }): Promise<ProductResponse> => {
   try {
-    return await apiClient.post<ProductResponse>('/products', data);
+    const payload = {
+      ...data,
+      mainImage: data.imageUrl ?? undefined,
+    };
+    return await apiClient.post<ProductResponse>('/products', payload);
   } catch (error) {
     console.error('Erro ao criar produto:', error);
     throw error;
   }
 };
 
-export const updateProduct = async (id: string, data: { 
-  name?: string; 
-  description?: string; 
-  price?: number; 
-  categoryId?: string; 
-  imageUrl?: string; 
-  isAvailable?: boolean; 
-  preparationTime?: number; 
-  allergens?: string[]; 
+export const updateProduct = async (id: string, data: {
+  name?: string;
+  description?: string;
+  price?: number;
+  categoryId?: string;
+  imageUrl?: string;
+  isAvailable?: boolean;
+  preparationTime?: number;
+  allergens?: string[];
   nutritionalInfo?: {
     calories?: number;
     protein?: number;
     carbs?: number;
     fat?: number;
-  }; 
+  };
 }): Promise<ProductResponse> => {
   try {
-    return await apiClient.patch<ProductResponse>(`/products/${id}`, data);
+    const payload = {
+      ...data,
+      mainImage: data.imageUrl ?? undefined,
+    };
+    return await apiClient.patch<ProductResponse>(`/products/${id}`, payload);
   } catch (error) {
     console.error('Erro ao atualizar produto:', error);
     throw error;
@@ -1364,6 +1901,10 @@ export const deleteProduct = async (id: string): Promise<void> => {
     throw error;
   }
 };
+
+// =============================================
+// Payments API
+// =============================================
 
 export interface PaymentResponse {
   id: string;
@@ -1387,9 +1928,9 @@ export const getPayments = async (): Promise<PaymentResponse[]> => {
   }
 };
 
-export const createPayment = async (data: { 
-  orderId: string; 
-  amount: number; 
+export const createPayment = async (data: {
+  orderId: string;
+  amount: number;
   method: 'CASH' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'PIX' | 'TRANSFER';
   status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
   transactionId?: string;
@@ -1403,9 +1944,9 @@ export const createPayment = async (data: {
   }
 };
 
-export const updatePayment = async (id: string, data: { 
-  orderId?: string; 
-  amount?: number; 
+export const updatePayment = async (id: string, data: {
+  orderId?: string;
+  amount?: number;
   method?: 'CASH' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'PIX' | 'TRANSFER';
   status?: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
   transactionId?: string;

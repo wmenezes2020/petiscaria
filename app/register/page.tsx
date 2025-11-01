@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, Building2, User, Mail, Lock, Phone, MapPin } from 'lucide-react';
+import { Eye, EyeOff, Building2, User, Mail, Lock, Phone, MapPin, XCircle } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useRequireGuest } from '@/hooks/useAuth';
 import toast from 'react-hot-toast';
@@ -77,9 +77,9 @@ export default function RegisterPage() {
     // Se estiver carregando a autenticação, mostrar loading
     if (authLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">Carregando...</p>
                 </div>
             </div>
@@ -87,7 +87,7 @@ export default function RegisterPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
             <div className="max-w-md w-full space-y-8">
                 {/* Logo */}
                 <div className="text-center">
@@ -109,9 +109,9 @@ export default function RegisterPage() {
                 {/* Formulário */}
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     {/* Informações Pessoais */}
-                    <div className="bg-white p-6 rounded-xl shadow-lg border border-orange-100">
+                    <div className="bg-white p-6 rounded-2xl shadow-soft border border-gray-100">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <User className="w-5 h-5 mr-2 text-orange-600" />
+                            <User className="w-5 h-5 mr-2 text-indigo-600" />
                             Informações Pessoais
                         </h3>
 
@@ -124,7 +124,7 @@ export default function RegisterPage() {
                                     {...register('name')}
                                     type="text"
                                     id="name"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     placeholder="Seu nome completo"
                                 />
                                 {errors.name && (
@@ -142,7 +142,7 @@ export default function RegisterPage() {
                                         {...register('email')}
                                         type="email"
                                         id="email"
-                                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         placeholder="seu@email.com"
                                     />
                                 </div>
@@ -161,13 +161,13 @@ export default function RegisterPage() {
                                         {...register('password')}
                                         type={showPassword ? 'text' : 'password'}
                                         id="password"
-                                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         placeholder="Sua senha"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                                     >
                                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
@@ -187,13 +187,13 @@ export default function RegisterPage() {
                                         {...register('confirmPassword')}
                                         type={showConfirmPassword ? 'text' : 'password'}
                                         id="confirmPassword"
-                                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         placeholder="Confirme sua senha"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                                     >
                                         {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
@@ -206,9 +206,9 @@ export default function RegisterPage() {
                     </div>
 
                     {/* Informações da Empresa */}
-                    <div className="bg-white p-6 rounded-xl shadow-lg border border-orange-100">
+                    <div className="bg-white p-6 rounded-2xl shadow-soft border border-gray-100">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <Building2 className="w-5 h-5 mr-2 text-orange-600" />
+                            <Building2 className="w-5 h-5 mr-2 text-indigo-600" />
                             Informações da Empresa
                         </h3>
 
@@ -221,7 +221,7 @@ export default function RegisterPage() {
                                     {...register('companyName')}
                                     type="text"
                                     id="companyName"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     placeholder="Nome do seu estabelecimento"
                                 />
                                 {errors.companyName && (
@@ -237,7 +237,7 @@ export default function RegisterPage() {
                                     {...register('cnpj')}
                                     type="text"
                                     id="cnpj"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     placeholder="00.000.000/0000-00"
                                 />
                                 {errors.cnpj && (
@@ -255,7 +255,7 @@ export default function RegisterPage() {
                                         {...register('phone')}
                                         type="tel"
                                         id="phone"
-                                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         placeholder="(11) 99999-9999"
                                     />
                                 </div>
@@ -271,7 +271,7 @@ export default function RegisterPage() {
                                         {...register('address')}
                                         type="text"
                                         id="address"
-                                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         placeholder="Rua, número, bairro"
                                     />
                                 </div>
@@ -286,7 +286,7 @@ export default function RegisterPage() {
                                         {...register('city')}
                                         type="text"
                                         id="city"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         placeholder="Sua cidade"
                                     />
                                 </div>
@@ -299,7 +299,7 @@ export default function RegisterPage() {
                                         {...register('state')}
                                         type="text"
                                         id="state"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         placeholder="SP"
                                         maxLength={2}
                                     />
@@ -314,7 +314,7 @@ export default function RegisterPage() {
                                     {...register('zipCode')}
                                     type="text"
                                     id="zipCode"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     placeholder="00000-000"
                                 />
                             </div>
@@ -325,7 +325,7 @@ export default function RegisterPage() {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full bg-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-orange-700 focus:ring-4 focus:ring-orange-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full inline-flex items-center justify-center gap-2 px-8 py-3 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLoading ? 'Criando conta...' : 'Criar Conta'}
                     </button>
@@ -334,7 +334,7 @@ export default function RegisterPage() {
                     <div className="text-center">
                         <p className="text-gray-600">
                             Já tem uma conta?{' '}
-                            <Link href="/login" className="text-orange-600 hover:text-orange-700 font-medium">
+                            <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
                                 Faça login
                             </Link>
                         </p>
@@ -343,8 +343,12 @@ export default function RegisterPage() {
 
                 {/* Mensagem de Erro */}
                 {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                        <p className="text-red-600 text-sm">{error}</p>
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                        <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                        <div className="flex-1">
+                            <h3 className="text-sm font-semibold text-red-800">Erro:</h3>
+                            <p className="mt-1 text-sm text-red-700">{error}</p>
+                        </div>
                     </div>
                 )}
             </div>

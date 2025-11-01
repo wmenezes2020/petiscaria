@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PlusCircle, Edit, Trash2, MapPin } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, MapPin, Loader2 } from 'lucide-react';
 import { getLocations, createLocation, updateLocation, deleteLocation, LocationResponse } from '@/lib/api';
+import { createPortal } from 'react-dom';
+import { Building2, Home, Mail, Phone, Map, Globe, XCircle } from 'lucide-react';
 
 interface LocationFormData {
     name: string;
@@ -119,10 +121,30 @@ export function LocationsManagement() {
         setFormData({ name: '', address: '', city: '', state: '', zipCode: '', phone: '', email: '' });
     };
 
+    useEffect(() => {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                handleCloseForm();
+            }
+        };
+
+        if (isFormOpen) {
+            document.addEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'unset';
+        };
+    }, [isFormOpen]);
+
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="flex justify-center items-center py-8 rounded-2xl shadow-lg border border-gray-100 bg-white min-h-[300px]">
+                <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
             </div>
         );
     }
@@ -130,14 +152,14 @@ export function LocationsManagement() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center">
-                <div>
+            <div className="card p-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="space-y-1">
                     <h3 className="text-2xl font-bold text-gray-900">Gestão de Localizações</h3>
-                    <p className="text-sm text-gray-500 mt-1">Cadastre e gerencie as localizações do estabelecimento</p>
+                    <p className="text-gray-500">Cadastre e gerencie as localizações do estabelecimento</p>
                 </div>
                 <button
                     onClick={handleOpenForm}
-                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all"
+                    className="btn-primary"
                 >
                     <PlusCircle className="h-5 w-5 mr-2" />
                     Nova Localização
@@ -146,54 +168,62 @@ export function LocationsManagement() {
 
             {/* Error Display */}
             {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                    <p className="text-sm text-red-700">{error}</p>
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-4">
+                    <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                    <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-red-800">Erro:</h3>
+                        <p className="mt-1 text-sm text-red-700">{error}</p>
+                    </div>
                 </div>
             )}
 
             {/* Locations List */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="card p-0">
                 {(Array.isArray(locations) ? locations : []).length === 0 ? (
-                    <div className="text-center py-12">
+                    <div className="text-center py-12 px-4">
                         <MapPin className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                        <p className="text-lg font-medium text-gray-500">Nenhuma localização cadastrada</p>
-                        <p className="text-sm text-gray-400 mt-2">Clique em "Nova Localização" para cadastrar</p>
+                        <p className="text-lg font-semibold text-gray-500">Nenhuma localização cadastrada</p>
+                        <p className="text-sm text-gray-400 mt-2">Clique em "Nova Localização" para cadastrar sua primeira localização</p>
                     </div>
                 ) : (
-                    <ul className="divide-y divide-gray-200">
+                    <ul className="divide-y divide-gray-100">
                         {(Array.isArray(locations) ? locations : []).map((location) => (
-                            <li key={location.id} className="px-6 py-4 hover:bg-gray-50">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-4">
-                                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                                            <MapPin className="h-6 w-6 text-white" />
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm font-semibold text-gray-900">{location.name}</h4>
-                                            <p className="text-sm text-gray-500">
-                                                {location.address}
-                                                {location.city && `, ${location.city}`}
-                                                {location.state && ` - ${location.state}`}
-                                            </p>
-                                            {location.phone && (
-                                                <p className="text-sm text-gray-500">📞 {location.phone}</p>
-                                            )}
-                                        </div>
+                            <li key={location.id} className="relative group px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors duration-200">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                        <MapPin className="h-6 w-6 text-white" />
                                     </div>
-                                    <div className="flex space-x-2">
-                                        <button
-                                            onClick={() => handleEdit(location)}
-                                            className="text-blue-600 hover:text-blue-900 p-2"
-                                        >
-                                            <Edit className="h-5 w-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(location.id)}
-                                            className="text-red-600 hover:text-red-900 p-2"
-                                        >
-                                            <Trash2 className="h-5 w-5" />
-                                        </button>
+                                    <div>
+                                        <h4 className="text-lg font-semibold text-gray-900">{location.name}</h4>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            {location.address}
+                                            {location.city && `, ${location.city}`}
+                                            {location.state && ` - ${location.state}`}
+                                            {location.zipCode && ` ${location.zipCode}`}
+                                        </p>
+                                        {location.phone && (
+                                            <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><Phone className="h-4 w-4 text-gray-400" /> {location.phone}</p>
+                                        )}
+                                        {location.email && (
+                                            <p className="text-sm text-gray-500 flex items-center gap-1"><Mail className="h-4 w-4 text-gray-400" /> {location.email}</p>
+                                        )}
                                     </div>
+                                </div>
+                                <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <button
+                                        onClick={() => handleEdit(location)}
+                                        className="p-2 text-indigo-600 hover:text-indigo-800 rounded-full hover:bg-gray-100 transition-colors"
+                                        title="Editar localização"
+                                    >
+                                        <Edit className="h-5 w-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(location.id)}
+                                        className="p-2 text-red-600 hover:text-red-800 rounded-full hover:bg-gray-100 transition-colors"
+                                        title="Excluir localização"
+                                    >
+                                        <Trash2 className="h-5 w-5" />
+                                    </button>
                                 </div>
                             </li>
                         ))}
@@ -202,136 +232,165 @@ export function LocationsManagement() {
             </div>
 
             {/* Form Modal */}
-            {isFormOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-gray-200">
+            {isFormOpen && createPortal(
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
+                    <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] flex flex-col">
+                        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
                             <h3 className="text-xl font-bold text-gray-900">
                                 {editingLocation ? 'Editar Localização' : 'Nova Localização'}
                             </h3>
-                            <p className="text-sm text-gray-500 mt-1">
-                                {editingLocation ? 'Atualize as informações da localização' : 'Preencha os dados para criar uma nova localização'}
-                            </p>
+                            <button onClick={handleCloseForm} className="text-gray-400 hover:text-gray-600">✕</button>
                         </div>
-                        <div className="p-6">
-                            <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="p-6 flex-1 overflow-y-auto">
+                            <form onSubmit={handleSubmit} className="space-y-5">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label htmlFor="name" className="input-label">
                                         Nome da Localização *
                                     </label>
-                                    <input
-                                        type="text"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                        placeholder="Ex: Filial Centro"
-                                        required
-                                    />
+                                    <div className="relative">
+                                        <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                        <input
+                                            type="text"
+                                            id="name"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            className="input-field pl-10"
+                                            placeholder="Ex: Filial Centro"
+                                            required
+                                            autoFocus
+                                        />
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label htmlFor="address" className="input-label">
                                         Endereço *
                                     </label>
-                                    <input
-                                        type="text"
-                                        value={formData.address}
-                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                        placeholder="Rua Exemplo, 123"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                            Cidade *
-                                        </label>
+                                    <div className="relative">
+                                        <Home className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                         <input
                                             type="text"
-                                            value={formData.city}
-                                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                            placeholder="São Paulo"
+                                            id="address"
+                                            value={formData.address}
+                                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                            className="input-field pl-10"
+                                            placeholder="Rua Exemplo, 123"
                                             required
                                         />
                                     </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-5">
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        <label htmlFor="city" className="input-label">
+                                            Cidade *
+                                        </label>
+                                        <div className="relative">
+                                            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <input
+                                                type="text"
+                                                id="city"
+                                                value={formData.city}
+                                                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                                                className="input-field pl-10"
+                                                placeholder="São Paulo"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="state" className="input-label">
                                             Estado *
                                         </label>
-                                        <input
-                                            type="text"
-                                            value={formData.state}
-                                            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                            placeholder="SP"
-                                            required
-                                        />
+                                        <div className="relative">
+                                            <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <input
+                                                type="text"
+                                                id="state"
+                                                value={formData.state}
+                                                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                                                className="input-field pl-10"
+                                                placeholder="SP"
+                                                required
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label htmlFor="zipCode" className="input-label">
                                         CEP *
                                     </label>
-                                    <input
-                                        type="text"
-                                        value={formData.zipCode}
-                                        onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                        placeholder="01234-567"
-                                        required
-                                    />
+                                    <div className="relative">
+                                        <Map className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                        <input
+                                            type="text"
+                                            id="zipCode"
+                                            value={formData.zipCode}
+                                            onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
+                                            className="input-field pl-10"
+                                            placeholder="01234-567"
+                                            required
+                                        />
+                                    </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-5">
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        <label htmlFor="phone" className="input-label">
                                             Telefone
                                         </label>
-                                        <input
-                                            type="tel"
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                            placeholder="(11) 99999-9999"
-                                        />
+                                        <div className="relative">
+                                            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <input
+                                                type="tel"
+                                                id="phone"
+                                                value={formData.phone}
+                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                className="input-field pl-10"
+                                                placeholder="(11) 99999-9999"
+                                            />
+                                        </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        <label htmlFor="email" className="input-label">
                                             Email
                                         </label>
-                                        <input
-                                            type="email"
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                            placeholder="contato@exemplo.com"
-                                        />
+                                        <div className="relative">
+                                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <input
+                                                type="email"
+                                                id="email"
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                className="input-field pl-10"
+                                                placeholder="contato@exemplo.com"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl px-6 py-4 -mx-6 -mb-6">
                                     <button
                                         type="button"
                                         onClick={handleCloseForm}
-                                        className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition"
+                                        className="btn-secondary"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
-                                        className="px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                                        className="btn-primary"
+                                        disabled={isLoading}
                                     >
-                                        {editingLocation ? 'Atualizar' : 'Criar'}
+                                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : null} {editingLocation ? 'Atualizar' : 'Criar'}
                                     </button>
                                 </div>
                             </form>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

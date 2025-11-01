@@ -4,46 +4,53 @@ import { cva, VariantProps } from 'class-variance-authority';
 import { Users, MoreVertical } from 'lucide-react';
 
 const cardVariants = cva(
-  'bg-white rounded-lg shadow-md p-5 flex flex-col justify-between transition-all duration-200 border-l-4 hover:shadow-xl hover:-translate-y-1 cursor-pointer',
+  'bg-white rounded-2xl shadow-lg p-5 flex flex-col justify-between transition-all duration-200 border border-gray-100 border-l-4 hover:shadow-xl cursor-pointer',
   {
     variants: {
       status: {
-        Livre: 'border-green-500',
-        Ocupada: 'border-blue-500',
-        Reservada: 'border-purple-500',
-        Fechando: 'border-yellow-500',
-        Inativa: 'border-gray-300',
+        available: 'border-green-500',
+        occupied: 'border-red-500',
+        reserved: 'border-purple-500',
+        cleaning: 'border-yellow-500',
+        out_of_service: 'border-gray-300',
       },
     },
     defaultVariants: {
-      status: 'Inativa',
+      status: 'out_of_service',
     },
   }
 );
 
 interface TableCardProps {
-  tableNumber: number;
+  name: string;
   capacity: number;
-  status: TableStatus;
+  status: TableStatus | 'available' | 'occupied' | 'reserved' | 'cleaning' | 'out_of_service';
   area?: string;
 }
+const statusTranslations: Record<TableStatus | 'available' | 'occupied' | 'reserved' | 'cleaning' | 'out_of_service', string> = {
+    available: 'Livre',
+    occupied: 'Ocupada',
+    reserved: 'Reservada',
+    cleaning: 'Em Limpeza',
+    out_of_service: 'Fora de Serviço',
+};
 
-export function TableCard({ tableNumber, capacity, status, area }: TableCardProps) {
+export function TableCard({ name, capacity, status, area }: TableCardProps) {
   return (
-    <div className={cardVariants({ status })}>
+    <div className={`${cardVariants({ status })} relative group`}>
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm text-gray-500">{area || 'Salão'}</p>
-          <h3 className="text-2xl font-bold text-gray-800">Mesa {String(tableNumber).padStart(2, '0')}</h3>
+          <p className="text-sm text-gray-500 font-medium mb-1">{area || 'Salão'}</p>
+          <h3 className="text-2xl font-bold text-gray-900 leading-tight">{name}</h3>
         </div>
-        <button className="text-gray-400 hover:text-gray-600">
+        <button className="p-2 rounded-full bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors opacity-0 group-hover:opacity-100">
           <MoreVertical size={20} />
         </button>
       </div>
       <div className="flex justify-between items-end mt-4">
         <div className="flex items-center text-gray-600">
-          <Users size={16} className="mr-2" />
-          <span className="text-sm font-medium">{capacity} lugares</span>
+          <Users size={18} className="mr-2 text-gray-400" />
+          <span className="text-base font-medium text-gray-700">{capacity} lugares</span>
         </div>
         <TableStatusBadge status={status} />
       </div>

@@ -9,12 +9,31 @@ import {
   getSalesByCategory, SalesByCategoryResponse,
   getSalesTimeline, SalesTimelineResponse
 } from '@/lib/api';
-import { StatCard } from '@/components/dashboard/StatCard';
 import { DollarSign, ShoppingCart, BarChart2 } from 'lucide-react';
 import { ptBR } from 'date-fns/locale';
 import { TopProductsCard } from '@/components/reports/TopProductsCard';
 import { SalesByCategoryCard } from '@/components/reports/SalesByCategoryCard';
 import { SalesChart } from '@/components/reports/SalesChart';
+
+interface SummaryCardProps {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+}
+
+function SummaryCard({ title, value, icon }: SummaryCardProps) {
+  return (
+    <div className="card p-6 flex items-center gap-4">
+      <div className="h-12 w-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+        {icon}
+      </div>
+      <div>
+        <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold">{title}</p>
+        <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function RelatoriosPage() {
   const [summary, setSummary] = useState<SalesSummaryResponse | null>(null);
@@ -117,20 +136,20 @@ export default function RelatoriosPage() {
       {summary && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard
+            <SummaryCard
               title="Receita Total"
               value={formatCurrency(summary.totalRevenue)}
-              icon={<DollarSign size={24} className="text-green-500" />}
+              icon={<DollarSign className="h-6 w-6" />}
             />
-            <StatCard
+            <SummaryCard
               title="Total de Pedidos"
               value={summary.totalOrders.toString()}
-              icon={<ShoppingCart size={24} className="text-blue-500" />}
+              icon={<ShoppingCart className="h-6 w-6" />}
             />
-            <StatCard
+            <SummaryCard
               title="Ticket Médio"
               value={formatCurrency(summary.averageOrderValue)}
-              icon={<BarChart2 size={24} className="text-purple-500" />}
+              icon={<BarChart2 className="h-6 w-6" />}
             />
           </div>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Download, BarChart3, TrendingUp, Users, ShoppingCart, DollarSign, Calendar, Filter, FileText, PieChart } from 'lucide-react';
 import { getOrders, getCustomers, getProducts, getPayments, OrderResponse, CustomerResponse, ProductResponse, PaymentResponse } from '@/lib/api';
+import { XCircle, Loader2 } from 'lucide-react';
 
 interface ReportData {
     totalRevenue: number;
@@ -191,22 +192,25 @@ export function ReportsPanel() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">Relatórios e Análises</h3>
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Relatórios e Análises</h2>
                 <div className="flex items-center space-x-4">
-                    <select
-                        value={dateRange}
-                        onChange={(e) => setDateRange(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                        <option value="7d">Últimos 7 dias</option>
-                        <option value="30d">Últimos 30 dias</option>
-                        <option value="90d">Últimos 90 dias</option>
-                        <option value="1y">Último ano</option>
-                    </select>
+                    <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <select
+                            value={dateRange}
+                            onChange={(e) => setDateRange(e.target.value)}
+                            className="input-field pl-10"
+                        >
+                            <option value="7d">Últimos 7 dias</option>
+                            <option value="30d">Últimos 30 dias</option>
+                            <option value="90d">Últimos 90 dias</option>
+                            <option value="1y">Último ano</option>
+                        </select>
+                    </div>
                     <button
                         onClick={generateReport}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        className="btn-primary"
                     >
                         <Download className="h-4 w-4 mr-2" />
                         Gerar Relatório
@@ -216,50 +220,49 @@ export function ReportsPanel() {
 
             {/* Error Display */}
             {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                    <div className="flex">
-                        <div className="ml-3">
-                            <h3 className="text-sm font-medium text-red-800">Erro</h3>
-                            <div className="mt-2 text-sm text-red-700">{error}</div>
-                        </div>
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                    <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                    <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-red-800">Erro:</h3>
+                        <p className="mt-1 text-sm text-red-700">{error}</p>
                     </div>
                 </div>
             )}
 
             {/* Report Type Selector */}
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 rounded-xl bg-gray-100 p-1">
                 <button
                     onClick={() => setReportType('overview')}
-                    className={`px-4 py-2 text-sm font-medium rounded-md ${reportType === 'overview'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${reportType === 'overview'
+                            ? 'bg-white text-indigo-700 shadow'
+                            : 'text-gray-700 hover:bg-gray-200'
                         }`}
                 >
                     Visão Geral
                 </button>
                 <button
                     onClick={() => setReportType('sales')}
-                    className={`px-4 py-2 text-sm font-medium rounded-md ${reportType === 'sales'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${reportType === 'sales'
+                            ? 'bg-white text-indigo-700 shadow'
+                            : 'text-gray-700 hover:bg-gray-200'
                         }`}
                 >
                     Vendas
                 </button>
                 <button
                     onClick={() => setReportType('customers')}
-                    className={`px-4 py-2 text-sm font-medium rounded-md ${reportType === 'customers'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${reportType === 'customers'
+                            ? 'bg-white text-indigo-700 shadow'
+                            : 'text-gray-700 hover:bg-gray-200'
                         }`}
                 >
                     Clientes
                 </button>
                 <button
                     onClick={() => setReportType('products')}
-                    className={`px-4 py-2 text-sm font-medium rounded-md ${reportType === 'products'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${reportType === 'products'
+                            ? 'bg-white text-indigo-700 shadow'
+                            : 'text-gray-700 hover:bg-gray-200'
                         }`}
                 >
                     Produtos
@@ -270,51 +273,51 @@ export function ReportsPanel() {
             {reportType === 'overview' && (
                 <div className="space-y-6">
                     {/* Key Metrics */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="bg-white p-6 rounded-lg shadow-sm border">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
                             <div className="flex items-center">
-                                <div className="p-2 bg-green-100 rounded-lg">
-                                    <DollarSign className="h-6 w-6 text-green-600" />
+                                <div className="p-3 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md">
+                                    <DollarSign className="h-6 w-6 text-white" />
                                 </div>
                                 <div className="ml-4">
                                     <p className="text-sm font-medium text-gray-600">Receita Total</p>
-                                    <p className="text-2xl font-semibold text-gray-900">{formatCurrency(reportData.totalRevenue)}</p>
+                                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(reportData.totalRevenue)}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white p-6 rounded-lg shadow-sm border">
+                        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
                             <div className="flex items-center">
-                                <div className="p-2 bg-blue-100 rounded-lg">
-                                    <ShoppingCart className="h-6 w-6 text-blue-600" />
+                                <div className="p-3 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md">
+                                    <ShoppingCart className="h-6 w-6 text-white" />
                                 </div>
                                 <div className="ml-4">
                                     <p className="text-sm font-medium text-gray-600">Total de Pedidos</p>
-                                    <p className="text-2xl font-semibold text-gray-900">{reportData.totalOrders}</p>
+                                    <p className="text-2xl font-bold text-gray-900">{reportData.totalOrders}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white p-6 rounded-lg shadow-sm border">
+                        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
                             <div className="flex items-center">
-                                <div className="p-2 bg-purple-100 rounded-lg">
-                                    <Users className="h-6 w-6 text-purple-600" />
+                                <div className="p-3 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md">
+                                    <Users className="h-6 w-6 text-white" />
                                 </div>
                                 <div className="ml-4">
                                     <p className="text-sm font-medium text-gray-600">Clientes Ativos</p>
-                                    <p className="text-2xl font-semibold text-gray-900">{reportData.totalCustomers}</p>
+                                    <p className="text-2xl font-bold text-gray-900">{reportData.totalCustomers}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white p-6 rounded-lg shadow-sm border">
+                        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
                             <div className="flex items-center">
-                                <div className="p-2 bg-orange-100 rounded-lg">
-                                    <BarChart3 className="h-6 w-6 text-orange-600" />
+                                <div className="p-3 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md">
+                                    <BarChart3 className="h-6 w-6 text-white" />
                                 </div>
                                 <div className="ml-4">
                                     <p className="text-sm font-medium text-gray-600">Ticket Médio</p>
-                                    <p className="text-2xl font-semibold text-gray-900">{formatCurrency(reportData.averageOrderValue)}</p>
+                                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(reportData.averageOrderValue)}</p>
                                 </div>
                             </div>
                         </div>
@@ -323,15 +326,15 @@ export function ReportsPanel() {
                     {/* Charts */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Revenue by Day */}
-                        <div className="bg-white p-6 rounded-lg shadow-sm border">
-                            <h4 className="text-lg font-medium text-gray-900 mb-4">Receita por Dia</h4>
-                            <div className="space-y-3">
+                        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                            <h4 className="text-xl font-bold text-gray-900 mb-4">Receita por Dia</h4>
+                            <div className="space-y-4">
                                 {reportData.revenueByDay.map((day, index) => (
-                                    <div key={index} className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-600">{day.date}</span>
+                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                        <span className="text-base font-medium text-gray-800">{day.date}</span>
                                         <div className="flex items-center space-x-4">
-                                            <span className="text-sm text-gray-500">{day.orders} pedidos</span>
-                                            <span className="text-sm font-medium text-gray-900">{formatCurrency(day.revenue)}</span>
+                                            <span className="text-sm text-gray-600">{day.orders} pedidos</span>
+                                            <span className="text-lg font-bold text-gray-900">{formatCurrency(day.revenue)}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -339,15 +342,15 @@ export function ReportsPanel() {
                         </div>
 
                         {/* Revenue by Category */}
-                        <div className="bg-white p-6 rounded-lg shadow-sm border">
-                            <h4 className="text-lg font-medium text-gray-900 mb-4">Receita por Categoria</h4>
-                            <div className="space-y-3">
+                        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                            <h4 className="text-xl font-bold text-gray-900 mb-4">Receita por Categoria</h4>
+                            <div className="space-y-4">
                                 {reportData.revenueByCategory.map((category, index) => (
-                                    <div key={index} className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-600">{category.category}</span>
+                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                        <span className="text-base font-medium text-gray-800">{category.category}</span>
                                         <div className="flex items-center space-x-4">
-                                            <span className="text-sm text-gray-500">{category.percentage.toFixed(1)}%</span>
-                                            <span className="text-sm font-medium text-gray-900">{formatCurrency(category.revenue)}</span>
+                                            <span className="text-sm text-gray-600">{category.percentage.toFixed(1)}%</span>
+                                            <span className="text-lg font-bold text-gray-900">{formatCurrency(category.revenue)}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -360,28 +363,28 @@ export function ReportsPanel() {
             {/* Sales Report */}
             {reportType === 'sales' && (
                 <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-lg shadow-sm border">
-                        <h4 className="text-lg font-medium text-gray-900 mb-4">Análise de Vendas</h4>
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                        <h4 className="text-xl font-bold text-gray-900 mb-4">Análise de Vendas</h4>
+                        <div className="space-y-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-100 pb-5">
                                 <div>
-                                    <h5 className="text-sm font-medium text-gray-700">Período Analisado</h5>
-                                    <p className="text-sm text-gray-600">
+                                    <h5 className="text-sm font-semibold text-gray-700">Período Analisado</h5>
+                                    <p className="text-base text-gray-800 mt-1">
                                         {dateRange === '7d' ? 'Últimos 7 dias' :
                                             dateRange === '30d' ? 'Últimos 30 dias' :
                                                 dateRange === '90d' ? 'Últimos 90 dias' : 'Último ano'}
                                     </p>
                                 </div>
                                 <div>
-                                    <h5 className="text-sm font-medium text-gray-700">Total de Vendas</h5>
-                                    <p className="text-sm text-gray-600">{reportData.totalOrders} pedidos</p>
+                                    <h5 className="text-sm font-semibold text-gray-700">Total de Vendas</h5>
+                                    <p className="text-base text-gray-800 mt-1">{reportData.totalOrders} pedidos</p>
                                 </div>
                             </div>
-                            <div className="border-t pt-4">
-                                <h5 className="text-sm font-medium text-gray-700 mb-2">Tendência de Vendas</h5>
-                                <div className="h-32 bg-gray-50 rounded-lg flex items-center justify-center">
+                            <div className="pt-4">
+                                <h5 className="text-lg font-semibold text-gray-900 mb-3">Tendência de Vendas</h5>
+                                <div className="h-48 bg-gray-50 rounded-xl border border-dashed border-gray-300 flex items-center justify-center p-6">
                                     <div className="text-center">
-                                        <TrendingUp className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                                        <TrendingUp className="h-10 w-10 text-blue-400 mx-auto mb-3" />
                                         <p className="text-sm text-gray-500">Gráfico de tendência será implementado aqui</p>
                                     </div>
                                 </div>
@@ -394,18 +397,18 @@ export function ReportsPanel() {
             {/* Customers Report */}
             {reportType === 'customers' && (
                 <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-lg shadow-sm border">
-                        <h4 className="text-lg font-medium text-gray-900 mb-4">Top Clientes</h4>
-                        <div className="space-y-3">
+                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                        <h4 className="text-xl font-bold text-gray-900 mb-4">Top Clientes</h4>
+                        <div className="space-y-4">
                             {reportData.topCustomers.map((item, index) => (
-                                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
                                     <div>
-                                        <p className="text-sm font-medium text-gray-900">{item.customer.name}</p>
-                                        <p className="text-xs text-gray-500">{item.customer.email}</p>
+                                        <p className="text-base font-medium text-gray-900">{item.customer.name}</p>
+                                        <p className="text-sm text-gray-600">{item.customer.email}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-sm font-medium text-gray-900">{item.orders} pedidos</p>
-                                        <p className="text-sm text-gray-600">{formatCurrency(item.totalSpent)}</p>
+                                        <p className="text-base font-bold text-gray-900">{item.orders} pedidos</p>
+                                        <p className="text-sm text-gray-700">{formatCurrency(item.totalSpent)}</p>
                                     </div>
                                 </div>
                             ))}
@@ -417,18 +420,18 @@ export function ReportsPanel() {
             {/* Products Report */}
             {reportType === 'products' && (
                 <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-lg shadow-sm border">
-                        <h4 className="text-lg font-medium text-gray-900 mb-4">Produtos Mais Vendidos</h4>
-                        <div className="space-y-3">
+                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                        <h4 className="text-xl font-bold text-gray-900 mb-4">Produtos Mais Vendidos</h4>
+                        <div className="space-y-4">
                             {reportData.topProducts.map((item, index) => (
-                                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
                                     <div>
-                                        <p className="text-sm font-medium text-gray-900">{item.product.name}</p>
-                                        <p className="text-xs text-gray-500">{item.product.description}</p>
+                                        <p className="text-base font-medium text-gray-900">{item.product.name}</p>
+                                        <p className="text-sm text-gray-600">{item.product.description}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-sm font-medium text-gray-900">{item.quantity} unidades</p>
-                                        <p className="text-sm text-gray-600">{formatCurrency(item.revenue)}</p>
+                                        <p className="text-base font-bold text-gray-900">{item.quantity} unidades</p>
+                                        <p className="text-sm text-gray-700">{formatCurrency(item.revenue)}</p>
                                     </div>
                                 </div>
                             ))}

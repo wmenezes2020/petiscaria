@@ -1,11 +1,8 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import '../globals.css';
 import { Sidebar } from '@/components/layout/sidebar';
 import { NotificationsPanel } from '@/components/notifications/NotificationsPanel';
 import { ChefHat } from 'lucide-react';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Petiscaria da Thay - Sistema de Gestão',
@@ -22,7 +19,7 @@ export default function AppLayout({
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 shadow-lg border-b border-purple-500">
+        <header className="bg-gradient-to-r from-primary-600 via-accent-600 to-primary-700 shadow-lg border-b border-primary-500">
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -32,7 +29,7 @@ export default function AppLayout({
                   </div>
                   <div>
                     <h1 className="text-xl font-bold text-white drop-shadow-sm">Petiscaria da Thay</h1>
-                    <p className="text-xs text-blue-100">Sistema de Gestão</p>
+                    <p className="text-xs text-primary-100">Sistema de Gestão</p>
                   </div>
                 </div>
               </div>
@@ -40,11 +37,11 @@ export default function AppLayout({
                 <NotificationsPanel />
                 <div className="flex items-center space-x-3 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
                   <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 text-sm font-bold">A</span>
+                    <span className="text-primary-600 text-sm font-bold">A</span>
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-semibold text-white">Admin</div>
-                    <div className="text-xs text-blue-100">Online</div>
+                    <div className="text-xs text-primary-100">Online</div>
                   </div>
                 </div>
               </div>

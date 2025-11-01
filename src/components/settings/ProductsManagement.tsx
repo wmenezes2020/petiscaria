@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PlusCircle, Edit, Trash2, Package, Image as ImageIcon, AlertTriangle } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Package, Image as ImageIcon, AlertTriangle, XCircle } from 'lucide-react';
 import { getProducts, createProduct, updateProduct, deleteProduct, getCategories, ProductResponse, CategoryResponse } from '@/lib/api';
+import { createPortal } from 'react-dom';
 
 interface ProductFormData {
     name: string;
@@ -44,10 +45,30 @@ export function ProductsManagement() {
             fat: 0
         }
     });
+    const [mounted, setMounted] = useState(false); // Para React Portal
 
     useEffect(() => {
+        setMounted(true);
         fetchData();
     }, []);
+
+    useEffect(() => {
+        if (isFormOpen) {
+            document.body.style.overflow = 'hidden';
+            const handleEsc = (event: KeyboardEvent) => {
+                if (event.key === 'Escape') {
+                    handleCloseForm();
+                }
+            };
+            window.addEventListener('keydown', handleEsc);
+            return () => {
+                window.removeEventListener('keydown', handleEsc);
+                document.body.style.overflow = '';
+            };
+        } else {
+            document.body.style.overflow = '';
+        }
+    }, [isFormOpen]);
 
     const fetchData = async () => {
         try {
@@ -56,7 +77,6 @@ export function ProductsManagement() {
                 getProducts(),
                 getCategories()
             ]);
-            // Garantir que os dados são arrays
             setProducts(Array.isArray(productsData) ? productsData : Array.isArray(productsData.products) ? productsData.products : []);
             setCategories(Array.isArray(categoriesData) ? categoriesData : []);
         } catch (err) {
@@ -177,11 +197,12 @@ export function ProductsManagement() {
         return category ? category.name : 'Categoria não encontrada';
     };
 
-    const formatPrice = (price: number) => {
+    const formatPrice = (price: number | string) => {
+        const parsed = typeof price === 'string' ? parseFloat(price) : Number(price ?? 0);
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL'
-        }).format(price);
+        }).format(parsed);
     };
 
     if (isLoading) {
@@ -195,66 +216,79 @@ export function ProductsManagement() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">Gestão de Produtos</h3>
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="space-y-1">
+                    <h3 className="text-2xl font-bold text-gray-900">Gestão de Produtos</h3>
+                    <p className="text-sm text-gray-600">Mantenha seu cardápio organizado e atualizado</p>
+                </div>
                 <button
                     onClick={handleOpenForm}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md hover:shadow-lg transition"
                 >
-                    <PlusCircle className="h-4 w-4 mr-2" />
+                    <PlusCircle className="h-4 w-4" />
                     Novo Produto
                 </button>
             </div>
 
             {/* Error Display */}
             {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                    <div className="flex">
-                        <div className="ml-3">
-                            <h3 className="text-sm font-medium text-red-800">Erro</h3>
-                            <div className="mt-2 text-sm text-red-700">{error}</div>
-                        </div>
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                    <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                    <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-red-800">Erro:</h3>
+                        <p className="mt-1 text-sm text-red-700">{error}</p>
                     </div>
                 </div>
             )}
 
             {/* Products List */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul className="divide-y divide-gray-200">
+            <div className="bg-white border border-gray-100 shadow-soft rounded-2xl overflow-hidden">
+                <ul className="divide-y divide-gray-100">
                     {products.length === 0 ? (
-                        <li className="px-6 py-4 text-center text-gray-500">
-                            Nenhum produto cadastrado
+                        <li className="p-6 text-center text-gray-500 flex flex-col items-center justify-center space-y-3">
+                            <Package className="h-12 w-12 text-gray-300" />
+                            <p className="text-lg font-medium">Nenhum produto cadastrado</p>
+                            <p className="text-sm text-gray-400">Comece adicionando um novo produto ao seu cardápio.</p>
+                            <button
+                                onClick={handleOpenForm}
+                                className="mt-4 inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            >
+                                <PlusCircle className="h-4 w-4" />
+                                Adicionar Produto
+                            </button>
                         </li>
                     ) : (
                         products.map((product) => (
-                            <li key={product.id} className="px-6 py-4">
+                            <li key={product.id} className="px-6 py-4 hover:bg-gray-50 transition relative group">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center">
+                                    <div className="flex items-center space-x-4">
                                         <div className="flex-shrink-0">
                                             {product.imageUrl ? (
                                                 <img
                                                     src={product.imageUrl}
                                                     alt={product.name}
-                                                    className="h-16 w-16 rounded-lg object-cover"
+                                                    className="h-12 w-12 rounded-xl object-cover border border-gray-100"
                                                 />
                                             ) : (
-                                                <div className="h-16 w-16 rounded-lg bg-gray-200 flex items-center justify-center">
-                                                    <ImageIcon className="h-8 w-8 text-gray-400" />
+                                                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 border border-gray-100 flex items-center justify-center text-indigo-600">
+                                                    <ImageIcon className="h-6 w-6" />
                                                 </div>
                                             )}
                                         </div>
                                         <div className="ml-4">
                                             <div className="flex items-center">
-                                                <h4 className="text-sm font-medium text-gray-900">{product.name}</h4>
-                                                <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${product.isAvailable
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-red-100 text-red-800'
+                                                <h4 className="text-base font-semibold text-gray-900">{product.name}</h4>
+                                                <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${product.isAvailable
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-red-100 text-red-700'
                                                     }`}>
                                                     {product.isAvailable ? 'Disponível' : 'Indisponível'}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-gray-500">{product.description}</p>
-                                            <div className="flex items-center space-x-4 text-xs text-gray-400">
+                                            {product.description && (
+                                                <p className="mt-1 text-sm text-gray-500">{product.description}</p>
+                                            )}
+                                            <div className="flex items-center space-x-4 text-xs text-gray-400 mt-1">
                                                 <span>Categoria: {getCategoryName(product.categoryId)}</span>
                                                 <span>Preço: {formatPrice(product.price)}</span>
                                                 {product.preparationTime && (
@@ -262,7 +296,7 @@ export function ProductsManagement() {
                                                 )}
                                             </div>
                                             {product.allergens && product.allergens.length > 0 && (
-                                                <div className="flex items-center mt-1">
+                                                <div className="flex items-center mt-2">
                                                     <AlertTriangle className="h-3 w-3 text-yellow-500 mr-1" />
                                                     <span className="text-xs text-yellow-600">
                                                         Alergênicos: {product.allergens.join(', ')}
@@ -271,16 +305,16 @@ export function ProductsManagement() {
                                             )}
                                         </div>
                                     </div>
-                                    <div className="flex items-center space-x-2">
+                                    <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                         <button
                                             onClick={() => handleEdit(product)}
-                                            className="text-blue-600 hover:text-blue-900 p-1"
+                                            className="p-1 text-indigo-600 hover:text-indigo-800"
                                         >
                                             <Edit className="h-4 w-4" />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(product.id)}
-                                            className="text-red-600 hover:text-red-900 p-1"
+                                            className="p-1 text-red-600 hover:text-red-900"
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </button>
@@ -293,156 +327,158 @@ export function ProductsManagement() {
             </div>
 
             {/* Form Modal */}
-            {isFormOpen && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                    <div className="relative top-10 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
-                        <div className="mt-3">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">
+            {mounted && isFormOpen && createPortal(
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
+                    <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100">
+                        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                            <h3 className="text-xl font-bold text-gray-900">
                                 {editingProduct ? 'Editar Produto' : 'Novo Produto'}
                             </h3>
+                            <button onClick={handleCloseForm} className="text-gray-400 hover:text-gray-600">✕</button>
+                        </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Nome do Produto *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder="Ex: Hambúrguer Clássico"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Categoria *
-                                        </label>
-                                        <select
-                                            value={formData.categoryId}
-                                            onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            required
-                                        >
-                                            <option value="">Selecione uma categoria</option>
-                                            {categories.map((category) => (
-                                                <option key={category.id} value={category.id}>
-                                                    {category.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-
+                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Descrição
-                                    </label>
-                                    <textarea
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="Descrição do produto..."
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Preço *
-                                        </label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={formData.price}
-                                            onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder="0.00"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Tempo de Preparo (min)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={formData.preparationTime}
-                                            onChange={(e) => setFormData({ ...formData, preparationTime: parseInt(e.target.value) || 0 })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder="0"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        URL da Imagem
-                                    </label>
-                                    <input
-                                        type="url"
-                                        value={formData.imageUrl}
-                                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="https://exemplo.com/imagem.jpg"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Alergênicos (separados por vírgula)
+                                        Nome do Produto *
                                     </label>
                                     <input
                                         type="text"
-                                        value={formData.allergens?.join(', ') || ''}
-                                        onChange={(e) => setFormData({
-                                            ...formData,
-                                            allergens: e.target.value.split(',').map(item => item.trim()).filter(Boolean)
-                                        })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="Glúten, Lactose, Ovos"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        placeholder="Ex: Hambúrguer Clássico"
+                                        required
                                     />
                                 </div>
 
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        id="isAvailable"
-                                        checked={formData.isAvailable}
-                                        onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
-                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    />
-                                    <label htmlFor="isAvailable" className="ml-2 block text-sm text-gray-900">
-                                        Produto disponível
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Categoria *
                                     </label>
+                                    <select
+                                        value={formData.categoryId}
+                                        onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        required
+                                    >
+                                        <option value="">Selecione uma categoria</option>
+                                        {categories.map((category) => (
+                                            <option key={category.id} value={category.id}>
+                                                {category.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Descrição
+                                </label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    rows={3}
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="Descrição detalhada do produto..."
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Preço *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        value={formData.price}
+                                        onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        placeholder="0.00"
+                                        required
+                                    />
                                 </div>
 
-                                <div className="flex justify-end space-x-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={handleCloseForm}
-                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                    >
-                                        {editingProduct ? 'Atualizar' : 'Criar'}
-                                    </button>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Tempo de Preparo (min)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={formData.preparationTime}
+                                        onChange={(e) => setFormData({ ...formData, preparationTime: parseInt(e.target.value) || 0 })}
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        placeholder="0"
+                                    />
                                 </div>
-                            </form>
-                        </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    URL da Imagem
+                                </label>
+                                <input
+                                    type="url"
+                                    value={formData.imageUrl}
+                                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="https://exemplo.com/imagem.jpg"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Alergênicos (separados por vírgula)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.allergens?.join(', ') || ''}
+                                    onChange={(e) => setFormData({
+                                        ...formData,
+                                        allergens: e.target.value.split(',').map(item => item.trim()).filter(Boolean)
+                                    })}
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="Glúten, Lactose, Ovos"
+                                />
+                            </div>
+
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="isAvailable"
+                                    checked={formData.isAvailable}
+                                    onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
+                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                />
+                                <label htmlFor="isAvailable" className="ml-2 block text-sm text-gray-900">
+                                    Produto disponível
+                                </label>
+                            </div>
+
+                            <div className="flex justify-end space-x-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={handleCloseForm}
+                                    className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-8 py-3 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md hover:shadow-lg"
+                                >
+                                    {editingProduct ? 'Atualizar' : 'Criar'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

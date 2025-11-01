@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { createCashMovement, CashMovementResponse, MovementType } from '@/lib/api';
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { X, DollarSign, XCircle, Loader2, TrendingUp, TrendingDown, Wallet, ShoppingBag } from 'lucide-react';
 
 const movementSchema = z.object({
     amount: z.preprocess(
@@ -24,9 +26,9 @@ interface AddMovementFormProps {
 }
 
 const typeConfig = {
-    [MovementType.DEPOSIT]: { title: 'Adicionar Suprimento', buttonText: 'Adicionar Suprimento' },
-    [MovementType.WITHDRAWAL]: { title: 'Registrar Sangria', buttonText: 'Registrar Sangria' },
-    [MovementType.EXPENSE]: { title: 'Registrar Despesa', buttonText: 'Registrar Despesa' },
+    [MovementType.DEPOSIT]: { title: 'Adicionar Suprimento', buttonText: 'Adicionar Suprimento', icon: TrendingUp, iconColor: 'text-green-500', bgColor: 'from-green-500 to-emerald-600' },
+    [MovementType.WITHDRAWAL]: { title: 'Registrar Sangria', buttonText: 'Registrar Sangria', icon: TrendingDown, iconColor: 'text-red-500', bgColor: 'from-red-500 to-rose-600' },
+    [MovementType.EXPENSE]: { title: 'Registrar Despesa', buttonText: 'Registrar Despesa', icon: ShoppingBag, iconColor: 'text-yellow-500', bgColor: 'from-amber-500 to-orange-600' },
 };
 
 export function AddMovementForm({ movementType, onClose, onMovementAdded }: AddMovementFormProps) {
@@ -48,54 +50,79 @@ export function AddMovementForm({ movementType, onClose, onMovementAdded }: AddM
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-10 overflow-y-auto bg-black bg-opacity-50">
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-                    <h2 className="text-xl font-bold mb-4">{config.title}</h2>
-                    <form onSubmit={handleSubmit(handleCreateMovement)}>
-                        <div className="space-y-4">
-                            <div>
-                                <label htmlFor="amount" className="block text-sm font-medium text-gray-700">Valor (R$)</label>
+    return createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
+            <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] flex flex-col">
+                <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white bg-gradient-to-br ${config.bgColor}`}>
+                            <config.icon className="h-5 w-5" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900">{config.title}</h3>
+                    </div>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+
+                <form onSubmit={handleSubmit(handleCreateMovement)} className="p-6 space-y-5 flex-1 flex flex-col">
+                    <div className="space-y-4 flex-1 overflow-y-auto">
+                        <div>
+                            <label htmlFor="amount" className="input-label">Valor (R$)</label>
+                            <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input
                                     type="number"
                                     step="0.01"
                                     {...register('amount')}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-                                    placeholder="0,00"
+                                    id="amount"
+                                    className="input-field pl-10"
+                                    placeholder="0.00"
+                                    autoFocus
                                 />
-                                {errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount.message}</p>}
                             </div>
-                            <div>
-                                <label htmlFor="description" className="block text-sm font-medium text-gray-700">Descrição</label>
-                                <input
-                                    type="text"
-                                    {...register('description')}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-                                />
-                                {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
-                            </div>
-                            <div>
-                                <label htmlFor="notes" className="block text-sm font-medium text-gray-700">Observações (Opcional)</label>
-                                <textarea
-                                    {...register('notes')}
-                                    rows={3}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-                                />
+                            {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount.message}</p>}
+                        </div>
+                        <div>
+                            <label htmlFor="description" className="input-label">Descrição</label>
+                            <input
+                                type="text"
+                                {...register('description')}
+                                id="description"
+                                className="input-field"
+                                placeholder="Ex: Salário, Aluguel, Venda de produtos..."
+                            />
+                            {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
+                        </div>
+                        <div>
+                            <label htmlFor="notes" className="input-label">Observações (Opcional)</label>
+                            <textarea
+                                {...register('notes')}
+                                id="notes"
+                                rows={3}
+                                className="input-field"
+                                placeholder="Notas adicionais sobre esta movimentação..."
+                            />
+                        </div>
+                    </div>
+                    {apiError && (
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mt-5">
+                            <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                            <div className="flex-1">
+                                <h3 className="text-sm font-semibold text-red-800">Erro:</h3>
+                                <p className="mt-1 text-sm text-red-700">{apiError}</p>
                             </div>
                         </div>
-                        {apiError && <p className="text-red-500 text-sm mt-4">{apiError}</p>}
-                        <div className="mt-6 flex justify-end space-x-2">
-                            <button type="button" onClick={onClose} disabled={isSubmitting} className="px-4 py-2 bg-gray-200 rounded-lg">
-                                Cancelar
-                            </button>
-                            <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-orange-500 text-white rounded-lg">
-                                {isSubmitting ? 'Salvando...' : config.buttonText}
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    )}
+                    <div className="mt-6 flex justify-end space-x-3 pt-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl px-6 py-4 -mx-6 -mb-6">
+                        <button type="button" onClick={onClose} disabled={isSubmitting} className="btn-secondary">
+                            Cancelar
+                        </button>
+                        <button type="submit" disabled={isSubmitting} className="btn-primary">
+                            {isSubmitting ? <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Salvando...</> : config.buttonText}
+                        </button>
+                    </div>
+                </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

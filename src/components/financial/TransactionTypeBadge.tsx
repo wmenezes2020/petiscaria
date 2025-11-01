@@ -2,12 +2,12 @@
 import { cva, VariantProps } from 'class-variance-authority';
 
 const badgeVariants = cva(
-  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide',
+  'inline-flex items-center px-3 py-1 rounded-md text-sm font-medium',
   {
     variants: {
       type: {
-        ENTRADA: 'bg-green-100 text-green-800',
-        SAIDA: 'bg-red-100 text-red-800',
+        ENTRADA: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20',
+        SAIDA: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20',
       },
     },
     defaultVariants: {

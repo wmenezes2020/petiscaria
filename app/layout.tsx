@@ -1,9 +1,6 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Petiscaria da Thay - Sistema de Gestão',
@@ -69,10 +66,10 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content="#f27a1a" />
-        <meta name="msapplication-TileColor" content="#f27a1a" />
+        <meta name="theme-color" content="#4f46e5" /> {/* Atualizado para primary-600 */}
+        <meta name="msapplication-TileColor" content="#4f46e5" /> {/* Atualizado para primary-600 */}
       </head>
-      <body className={`${inter.className} h-full`}>
+      <body className="antialiased">
         {children}
         <Toaster
           position="top-right"
