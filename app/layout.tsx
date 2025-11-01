@@ -1,6 +1,16 @@
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import './globals.css';
-import { ToasterProvider } from '@/components/providers/ToasterProvider';
+
+// Dynamic import do ToasterProvider para evitar hydration mismatch
+// Ele não será incluído no HTML do servidor
+const ToasterProvider = dynamic(
+  () => import('@/components/providers/ToasterProvider').then((mod) => ({ default: mod.ToasterProvider })),
+  {
+    ssr: false,
+    loading: () => null,
+  }
+);
 
 export const metadata: Metadata = {
   title: 'Petiscaria da Thay - Sistema de Gestão',
@@ -70,11 +80,9 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#4f46e5" />
       </head>
       <body className="antialiased" suppressHydrationWarning>
-        <div id="__next" suppressHydrationWarning>
-          {children}
-          {/* Single Toaster instance for entire app */}
-          <ToasterProvider />
-        </div>
+        {children}
+        {/* Single Toaster instance - mounted only on client */}
+        <ToasterProvider />
       </body>
     </html>
   );

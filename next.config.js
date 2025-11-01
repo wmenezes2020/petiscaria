@@ -30,9 +30,12 @@ const nextConfig = {
   },
   // Configura páginas para serem estáticas
   trailingSlash: true,
-  // Desabilitar strict mode para evitar problemas de hidratação em produção
+  // CRITICAL: Desabilitar strict mode para evitar problemas de hidratação em produção
   // Strict mode causa renderização dupla que pode causar mismatch
   reactStrictMode: false,
+  // Forçar renderização estática para evitar hydration mismatch
+  // Isso pode reduzir SSR dinâmico mas garante consistência
+  output: undefined, // Mantém padrão do Next.js (não standalone)
   // Garantir que não há problemas com server components
   poweredByHeader: false,
   // Otimização para produção

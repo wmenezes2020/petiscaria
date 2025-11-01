@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 // Dynamically import Toaster - NEVER render on server
+// This component will ONLY render on client, preventing hydration mismatch
 const Toaster = dynamic(
   () => import('react-hot-toast').then((mod) => ({ default: mod.Toaster })),
   {
@@ -13,38 +13,18 @@ const Toaster = dynamic(
 );
 
 /**
- * Toaster Provider that mounts ONLY on client, AFTER hydration completes
- * This ensures no hydration mismatch and prevents "Only one element on document" errors
+ * Toaster Provider that mounts ONLY on client
+ * 
+ * CRITICAL: This component is imported via dynamic() with ssr: false in the root layout,
+ * which means it will NEVER be included in the server-rendered HTML.
+ * This completely prevents hydration mismatch issues.
+ * 
+ * The Toaster component from react-hot-toast will handle its own mounting
+ * and container creation after hydration completes.
  */
 export function ToasterProvider() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    // CRITICAL: Only mount on client, after hydration completes
-    if (typeof window === 'undefined') return;
-
-    // Wait for hydration to complete using multiple RAFs
-    // This ensures React has finished hydrating before we mount the Toaster
-    const mountTimeout = setTimeout(() => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          // Small additional delay to ensure hydration is fully complete
-          setTimeout(() => {
-            setMounted(true);
-          }, 0);
-        });
-      });
-    }, 0);
-
-    return () => clearTimeout(mountTimeout);
-  }, []);
-
-  // NEVER render on server - return null
-  if (typeof window === 'undefined' || !mounted) {
-    return null;
-  }
-
-  // React-hot-toast creates its own container, but mounting after hydration prevents conflicts
+  // Since this is imported with ssr: false, it never renders on server
+  // and only renders on client after the page loads
   return (
     <Toaster
       position="top-right"
