@@ -28,6 +28,11 @@ export default function DashboardPage() {
     } catch (e: any) {
       console.error('Failed to fetch dashboard data:', e);
       setDashboardData({
+        period: {
+          start: new Date().toISOString(),
+          end: new Date().toISOString(),
+          type: 'custom',
+        },
         kpis: {
           totalRevenue: { label: 'Receita Total', value: 0 },
           totalOrders: { label: 'Total de Pedidos', value: 0 },
@@ -42,11 +47,13 @@ export default function DashboardPage() {
           revenueChange: 0,
           ordersChange: 0,
           customersChange: 0,
-          averageOrderValueChange: 0, // Ensure this property exists defensively
+          averageOrderValueChange: 0,
         },
         tables: {
-          recentOrders: []
-        }
+          recentOrders: [],
+          topCustomers: [],
+          lowStockAlerts: [],
+        },
       });
       setError(null);
     } finally {
