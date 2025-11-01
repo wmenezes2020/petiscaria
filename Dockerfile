@@ -34,6 +34,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build da aplicação Next.js (mesmo processo que local)
+# NOTA: Variáveis NEXT_PUBLIC_* devem ser definidas em runtime, não durante build
+# se forem diferentes entre ambientes. Para build, usar valores padrão.
 RUN npm run build
 
 # Stage 2: Runner - Executar a aplicação
@@ -45,9 +47,11 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
 
-# Definir variáveis de ambiente
+# Definir variáveis de ambiente padrão (podem ser sobrescritas em runtime)
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# NOTA: Variáveis NEXT_PUBLIC_* devem ser configuradas no Coolify
+# como variáveis de ambiente da aplicação (não do build)
 
 # Copiar node_modules do builder (já tem todas as dependências incluindo sharp)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules

@@ -9,10 +9,10 @@ import { createPortal } from 'react-dom';
  */
 let portalContainer: HTMLDivElement | null = null;
 
-function getPortalContainer(): HTMLDivElement {
-  if (typeof window === 'undefined') {
-    // SSR: return a dummy div (won't be used)
-    return document.createElement('div');
+function getPortalContainer(): HTMLDivElement | null {
+  // CRITICAL: Never access document during SSR
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return null;
   }
 
   if (!portalContainer) {
@@ -36,16 +36,18 @@ export function Portal({ children }: { children: React.ReactNode }) {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    // Only mount on client
+    if (typeof window === 'undefined') return;
+    
     setMounted(true);
     const portalContainer = getPortalContainer();
-    setContainer(portalContainer);
+    if (portalContainer) {
+      setContainer(portalContainer);
+    }
 
     return () => {
       // Cleanup on unmount
-      if (portalContainer && portalContainer.parentNode === document.body) {
-        // Only remove if no other portals are using it
-        // We'll keep it alive for performance
-      }
+      // Keep container alive for performance
     };
   }, []);
 

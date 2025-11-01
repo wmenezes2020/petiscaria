@@ -33,6 +33,15 @@ const nextConfig = {
   // Desabilitar strict mode para evitar problemas de hidratação em produção
   // Strict mode causa renderização dupla que pode causar mismatch
   reactStrictMode: false,
+  // Garantir que não há problemas com server components
+  poweredByHeader: false,
+  // Otimização para produção
+  compress: true,
+  // Prevenir problemas de hydration com logging
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
+  },
   async headers() {
     return [
       {

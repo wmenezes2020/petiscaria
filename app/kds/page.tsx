@@ -61,6 +61,9 @@ export default function KdsPage() {
 
     // Detectar mudanças no fullscreen
     useEffect(() => {
+        // CRITICAL: Only access document on client
+        if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
         const handleFullscreenChange = () => {
             setIsFullscreen(!!document.fullscreenElement);
         };
