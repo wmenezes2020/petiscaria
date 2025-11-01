@@ -1,6 +1,5 @@
-// CRITICAL: Página completamente estática - SEM SSR para evitar hydration mismatch
-// Esta página será renderizada APENAS no cliente
-
+// CRITICAL: Página que renderiza exatamente o mesmo HTML no servidor e cliente
+// Isso previne completamente hydration mismatch
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -9,54 +8,100 @@ export default function HomePage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // CRITICAL: Aguardar que a hidratação esteja completamente finalizada
-    // Usar múltiplos requestAnimationFrame para garantir que passamos pela hidratação
+    // CRITICAL: Marcar como montado apenas após hidratação
+    // Usar requestIdleCallback para garantir que passamos pela hidratação
     if (typeof window === 'undefined') return;
 
+    // Aguardar que o React complete a hidratação inicial
     const timer = setTimeout(() => {
-      // Aguardar que React complete a hidratação
       setMounted(true);
     }, 0);
 
     return () => clearTimeout(timer);
   }, []);
 
-  // CRITICAL: NUNCA renderizar no servidor
-  // Retornar null durante SSR e inicialização
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-orange-200 border-t-orange-600 mx-auto mb-4" />
-          <p className="text-xl text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
+  // CRITICAL: Renderizar HTML IDÊNTICO no servidor e cliente
+  // O estado 'mounted' só muda após hidratação, então o HTML inicial é sempre o mesmo
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
-      <div className="text-center py-20">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Petiscaria da Thay
-        </h1>
-        <p className="text-xl text-gray-600 mb-8">
-          Sistema de gestão para petiscarias
-        </p>
-        <div className="space-x-4">
-          <a
-            href="/login"
-            className="bg-orange-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-orange-700 transition-colors inline-block"
-          >
-            Entrar
-          </a>
-          <a
-            href="/register"
-            className="border-2 border-orange-600 text-orange-600 px-6 py-3 rounded-lg text-lg font-semibold hover:bg-orange-600 hover:text-white transition-colors inline-block"
-          >
-            Criar Conta
-          </a>
-        </div>
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      background: 'linear-gradient(to bottom right, #fff7ed, #ffffff, #fff7ed)',
+      padding: '16px'
+    }}>
+      <div style={{ textAlign: 'center', maxWidth: '600px' }}>
+        {!mounted ? (
+          <>
+            <div 
+              style={{
+                width: '48px',
+                height: '48px',
+                border: '4px solid #fed7aa',
+                borderTop: '4px solid #ea580c',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto 16px'
+              }}
+            />
+            <style dangerouslySetInnerHTML={{ __html: '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }' }} />
+            <p style={{ fontSize: '20px', color: '#4b5563' }}>Carregando...</p>
+          </>
+        ) : (
+          <>
+            <h1 style={{ fontSize: '36px', fontWeight: 'bold', color: '#111827', marginBottom: '16px' }}>
+              Petiscaria da Thay
+            </h1>
+            <p style={{ fontSize: '20px', color: '#4b5563', marginBottom: '32px' }}>
+              Sistema de gestão para petiscarias
+            </p>
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a
+                href="/login"
+                style={{
+                  backgroundColor: '#ea580c',
+                  color: 'white',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                  transition: 'background-color 0.2s',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c2410c'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ea580c'}
+              >
+                Entrar
+              </a>
+              <a
+                href="/register"
+                style={{
+                  border: '2px solid #ea580c',
+                  color: '#ea580c',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                  transition: 'background-color 0.2s, color 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ea580c';
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#ea580c';
+                }}
+              >
+                Criar Conta
+              </a>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,9 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 
-// CRITICAL: Layout completamente estático - sem componentes client-side
-// Nenhum componente que possa causar hydration mismatch
-
 export const metadata: Metadata = {
   title: 'Petiscaria da Thay - Sistema de Gestão',
   description: 'Sistema SaaS completo para gestão de petiscarias, bares e restaurantes. Comanda digital, KDS, controle de mesas, estoque e pagamentos PIX.',
@@ -61,11 +58,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   // CRITICAL: Layout minimalista - apenas HTML básico
-  // suppressHydrationWarning evita warnings mas NÃO resolve o problema fundamental
-  // O problema é que algo está criando múltiplos elementos raiz
+  // Não há wrappers ou componentes client-side aqui
   return (
-    <html lang="pt-BR" className="h-full">
+    <html lang="pt-BR">
       <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -74,9 +72,9 @@ export default function RootLayout({
         <meta name="theme-color" content="#4f46e5" />
         <meta name="msapplication-TileColor" content="#4f46e5" />
       </head>
-      <body className="antialiased h-full">
-        {/* CRITICAL: Nenhum wrapper adicional - apenas children direto */}
-        {children}
+      <body>
+        {/* CRITICAL: Children direto sem wrappers */}
+        <div id="__next">{children}</div>
       </body>
     </html>
   );
