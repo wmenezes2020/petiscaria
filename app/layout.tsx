@@ -1,16 +1,8 @@
 import type { Metadata } from 'next';
-import dynamic from 'next/dynamic';
 import './globals.css';
 
-// Dynamic import do ToasterProvider para evitar hydration mismatch
-// Ele não será incluído no HTML do servidor
-const ToasterProvider = dynamic(
-  () => import('@/components/providers/ToasterProvider').then((mod) => ({ default: mod.ToasterProvider })),
-  {
-    ssr: false,
-    loading: () => null,
-  }
-);
+// CRITICAL: Toaster completamente removido do layout para evitar hydration mismatch
+// Os componentes podem usar react-hot-toast diretamente quando necessário
 
 export const metadata: Metadata = {
   title: 'Petiscaria da Thay - Sistema de Gestão',
@@ -81,8 +73,6 @@ export default function RootLayout({
       </head>
       <body className="antialiased" suppressHydrationWarning>
         {children}
-        {/* Single Toaster instance - mounted only on client */}
-        <ToasterProvider />
       </body>
     </html>
   );

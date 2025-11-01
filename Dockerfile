@@ -33,6 +33,9 @@ COPY . .
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# CRITICAL: Limpar cache do Next.js antes do build para garantir build limpo
+RUN rm -rf .next
+
 # Build da aplicação Next.js (mesmo processo que local)
 # NOTA: Variáveis NEXT_PUBLIC_* devem ser definidas em runtime, não durante build
 # se forem diferentes entre ambientes. Para build, usar valores padrão.
