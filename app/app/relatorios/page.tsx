@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import {
@@ -42,8 +42,19 @@ export default function RelatoriosPage() {
   const [salesTimeline, setSalesTimeline] = useState<SalesTimelineResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [startDate, setStartDate] = useState<Date | null>(new Date());
-  const [endDate, setEndDate] = useState<Date | null>(new Date());
+  // Inicializar como null para evitar hydration mismatch
+  // Será definido apenas no cliente via useEffect
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  
+  useEffect(() => {
+    // Definir datas apenas no cliente após montagem
+    if (typeof window !== 'undefined') {
+      const now = new Date();
+      setStartDate(now);
+      setEndDate(now);
+    }
+  }, []);
 
   const handleGenerateReport = async () => {
     if (!startDate || !endDate) {

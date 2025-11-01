@@ -25,14 +25,20 @@ interface KdsOrder {
 
 export default function KdsPage() {
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [currentTime, setCurrentTime] = useState(new Date());
+    // Inicializar como null para evitar hydration mismatch
+    const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [autoRefresh, setAutoRefresh] = useState(true);
     const [orders, setOrders] = useState<KdsOrder[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Atualizar relógio a cada segundo
+    // Atualizar relógio a cada segundo (apenas no cliente)
     useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
+        // Inicializar tempo atual apenas no cliente
+        setCurrentTime(new Date());
+        
         const timer = setInterval(() => {
             setCurrentTime(new Date());
         }, 1000);
@@ -202,8 +208,17 @@ export default function KdsPage() {
                 <div className="flex items-center space-x-4">
                     {/* Data e Hora */}
                     <div className="text-right">
-                        <div className="text-3xl font-extrabold text-indigo-400">{formatTime(currentTime)}</div>
-                        <div className="text-sm text-gray-400 capitalize mt-0.5">{formatDate(currentTime)}</div>
+                        {currentTime ? (
+                            <>
+                                <div className="text-3xl font-extrabold text-indigo-400">{formatTime(currentTime)}</div>
+                                <div className="text-sm text-gray-400 capitalize mt-0.5">{formatDate(currentTime)}</div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="text-3xl font-extrabold text-indigo-400">--:--:--</div>
+                                <div className="text-sm text-gray-400 capitalize mt-0.5">-- -- ----</div>
+                            </>
+                        )}
                     </div>
 
                     {/* Controles */}

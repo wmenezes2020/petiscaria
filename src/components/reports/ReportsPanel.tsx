@@ -82,18 +82,18 @@ export function ReportsPanel() {
             const totalCustomers = customers.length;
             const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-            // Top produtos (simulado)
-            const topProducts = products.slice(0, 5).map(product => ({
+            // Top produtos - usar dados reais ou valores fixos para evitar hydration mismatch
+            const topProducts = products.slice(0, 5).map((product, index) => ({
                 product,
-                quantity: Math.floor(Math.random() * 100) + 10,
-                revenue: Math.floor(Math.random() * 1000) + 100
+                quantity: index * 10 + 10, // Valor determinístico baseado no índice
+                revenue: index * 100 + 100 // Valor determinístico baseado no índice
             }));
 
-            // Top clientes (simulado)
-            const topCustomers = customers.slice(0, 5).map(customer => ({
+            // Top clientes - usar dados reais ou valores fixos para evitar hydration mismatch
+            const topCustomers = customers.slice(0, 5).map((customer, index) => ({
                 customer,
-                orders: Math.floor(Math.random() * 20) + 1,
-                totalSpent: Math.floor(Math.random() * 500) + 50
+                orders: index * 2 + 1, // Valor determinístico baseado no índice
+                totalSpent: index * 50 + 50 // Valor determinístico baseado no índice
             }));
 
             // Receita por dia (simulado)

@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable standalone output for Docker optimization
+  output: 'standalone',
   images: {
     domains: ['localhost', 'api.petiscariadathay.com'],
   },
@@ -13,8 +15,9 @@ const nextConfig = {
   },
   // Configura páginas para serem estáticas
   trailingSlash: true,
-  // Ensure React strict mode doesn't cause hydration issues
-  reactStrictMode: true,
+  // Desabilitar strict mode para evitar problemas de hidratação em produção
+  // Strict mode causa renderização dupla que pode causar mismatch
+  reactStrictMode: false,
   async headers() {
     return [
       {

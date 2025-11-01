@@ -27,10 +27,12 @@ export default function DashboardPage() {
       setError(null);
     } catch (e: any) {
       console.error('Failed to fetch dashboard data:', e);
+      // Use valores fixos para evitar hydration mismatch
+      const now = new Date().toISOString();
       setDashboardData({
         period: {
-          start: new Date().toISOString(),
-          end: new Date().toISOString(),
+          start: now,
+          end: now,
           type: 'custom',
         },
         kpis: {
