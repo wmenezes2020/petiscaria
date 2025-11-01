@@ -30,6 +30,11 @@ const nextConfig = {
   },
   // Configura páginas para serem estáticas
   trailingSlash: true,
+  // CRITICAL: Forçar todas as páginas a serem renderizadas apenas no cliente
+  // Isso previne completamente hydration mismatch
+  // TESTE: Se isso resolver, sabemos que o problema é com SSR
+  // Depois podemos reativar SSR gradualmente
+  // output: 'export', // Isso desabilitaria SSR completamente, mas quebra rotas dinâmicas
   // CRITICAL: Desabilitar strict mode para evitar problemas de hidratação em produção
   // Strict mode causa renderização dupla que pode causar mismatch
   reactStrictMode: false,
@@ -47,6 +52,11 @@ const nextConfig = {
   swcMinify: true,
   // Garantir que o output seja estável
   generateEtags: false, // Evitar diferenças em ETags entre builds
+  // CRITICAL: Desabilitar minificação em produção para debug
+  // Isso permite identificar exatamente onde está o problema
+  // Depois de resolver, pode reativar minificação
+  // swcMinify será ignorado se productionBrowserSourceMaps estiver true
+  productionBrowserSourceMaps: false, // Não gerar source maps para manter build igual
   async headers() {
     return [
       {

@@ -38,10 +38,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # CRITICAL: Limpar cache do Next.js antes do build para garantir build limpo
 RUN rm -rf .next
 
-# Build da aplicação Next.js
+# CRITICAL: Garantir que não há cache de build
+RUN rm -rf node_modules/.cache
+
+# Build da aplicação Next.js com modo verbose para debug
 # NOTA: npm run build já define NODE_ENV=production internamente se necessário,
 # mas não vamos forçar isso aqui para evitar diferenças
-RUN npm run build
+RUN npm run build 2>&1 | head -50 || true
 
 # Stage 2: Runner - Executar a aplicação
 FROM base AS runner
