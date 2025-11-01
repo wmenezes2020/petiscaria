@@ -10,8 +10,8 @@ import {
   closeTableCommand,
   getOrder,
   CreateOrderPayload,
-  OrderStatus,
 } from '@/lib/api';
+import { OrderStatus } from '@/components/orders/OrderStatusBadge';
 import { Loader2, Users, Clock, UserCircle, Table as TableIcon, X, CheckCircle2, Ban, PlusCircle, Wallet } from 'lucide-react';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';

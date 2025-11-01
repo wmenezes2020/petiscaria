@@ -123,7 +123,7 @@ export default function PurchasesTable({ purchases, onEdit, onRefresh }: Purchas
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm font-medium text-gray-800">
-                                        {purchase.supplier?.name || 'N/A'}
+                                        {purchase.supplierName || 'N/A'}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">

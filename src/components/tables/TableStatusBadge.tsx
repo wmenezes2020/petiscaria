@@ -28,11 +28,11 @@ const badgeVariants = cva(
 
 export type TableStatus = VariantProps<typeof badgeVariants>['status'];
 
-interface TableStatusBadgeProps extends VariantProps<typeof badgeVariants> {
-  status: TableStatus | 'available' | 'occupied' | 'reserved' | 'cleaning' | 'out_of_service';
+interface TableStatusBadgeProps {
+  status: TableStatus | string | null | undefined;
 }
 
-const statusTranslations: Record<string, string> = {
+const statusTranslations = {
   Livre: 'Livre',
   Ocupada: 'Ocupada',
   Reservada: 'Reservada',
@@ -43,12 +43,15 @@ const statusTranslations: Record<string, string> = {
   reserved: 'Reservada',
   cleaning: 'Em Limpeza',
   out_of_service: 'Fora de Serviço',
-};
+} as const;
+
+type StatusKey = keyof typeof statusTranslations;
 
 export function TableStatusBadge({ status }: TableStatusBadgeProps) {
-  const safeStatus = (status || 'out_of_service') as any;
+  const statusKey = (status ?? 'out_of_service') as string;
+  const safeStatus = (statusKey in statusTranslations ? statusKey : 'out_of_service') as StatusKey;
   return (
-    <span className={badgeVariants({ status: safeStatus })}>
+    <span className={badgeVariants({ status: safeStatus as TableStatus })}>
       {statusTranslations[safeStatus] || 'Inativa'}
     </span>
   );

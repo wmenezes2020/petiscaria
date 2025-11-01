@@ -84,7 +84,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                     <OrderStatusBadge status={order.status} />
                   </td>
                   <td className="px-6 py-4 text-gray-700">
-                    {order.table ? `Mesa ${order.table.name}` : (order.customer?.name || 'Balcão')}
+                    {order.tableName || order.table ? `Mesa ${order.tableName ?? String(order.table?.number ?? '')}` : (order.customer?.name || 'Balcão')}
                   </td>
                   <td className="px-6 py-4 text-gray-600">{formatDate(order.createdAt)}</td>
                   <td className="px-6 py-4 text-right font-bold text-gray-900">{formatCurrency(order.total)}</td>

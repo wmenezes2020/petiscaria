@@ -77,7 +77,7 @@ export function ProductsManagement() {
                 getProducts(),
                 getCategories()
             ]);
-            setProducts(Array.isArray(productsData) ? productsData : Array.isArray(productsData.products) ? productsData.products : []);
+            setProducts(Array.isArray(productsData) ? productsData : []);
             setCategories(Array.isArray(categoriesData) ? categoriesData : []);
         } catch (err) {
             setError('Erro ao carregar dados');

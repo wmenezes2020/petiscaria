@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PlusCircle, Edit, Trash2, CreditCard, DollarSign, Clock, User, Receipt, Search, Filter } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, CreditCard, DollarSign, Clock, User, Receipt, Search, Filter, XCircle } from 'lucide-react';
 import { getPayments, createPayment, updatePayment, deletePayment, getOrders, PaymentResponse, OrderResponse } from '@/lib/api';
 import { createPortal } from 'react-dom';
 import { X, Hash, FileText, CheckCircle } from 'lucide-react';

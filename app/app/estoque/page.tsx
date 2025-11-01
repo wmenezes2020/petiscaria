@@ -60,7 +60,7 @@ export default function EstoquePage() {
       </div>
 
       {/* Stock Table */}
-      <StockTable initialIngredients={ingredients} />
+      <StockTable ingredients={ingredients} />
     </div>
   );
 }

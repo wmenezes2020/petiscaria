@@ -21,13 +21,15 @@ const cardVariants = cva(
   }
 );
 
+type TableCardVariant = 'available' | 'occupied' | 'reserved' | 'cleaning' | 'out_of_service';
+
 interface TableCardProps {
   name: string;
   capacity: number;
-  status: TableStatus | 'available' | 'occupied' | 'reserved' | 'cleaning' | 'out_of_service';
+  status: TableStatus | TableCardVariant;
   area?: string;
 }
-const statusTranslations: Record<TableStatus | 'available' | 'occupied' | 'reserved' | 'cleaning' | 'out_of_service', string> = {
+const statusTranslations: Record<string, string> = {
     available: 'Livre',
     occupied: 'Ocupada',
     reserved: 'Reservada',
@@ -36,8 +38,20 @@ const statusTranslations: Record<TableStatus | 'available' | 'occupied' | 'reser
 };
 
 export function TableCard({ name, capacity, status, area }: TableCardProps) {
+  const variantStatuses: TableCardVariant[] = ['available', 'occupied', 'reserved', 'cleaning', 'out_of_service'];
+  const statusVariantMap: Record<string, TableCardVariant> = {
+    Livre: 'available',
+    Ocupada: 'occupied',
+    Reservada: 'reserved',
+    Fechando: 'cleaning',
+    Inativa: 'out_of_service',
+  };
+  const statusKey = status as string;
+  const normalizedStatus: TableCardVariant = variantStatuses.includes(statusKey as TableCardVariant)
+    ? (statusKey as TableCardVariant)
+    : statusVariantMap[statusKey] ?? 'out_of_service';
   return (
-    <div className={`${cardVariants({ status })} relative group`}>
+    <div className={`${cardVariants({ status: normalizedStatus })} relative group`}>
       <div className="flex justify-between items-start">
         <div>
           <p className="text-sm text-gray-500 font-medium mb-1">{area || 'Salão'}</p>

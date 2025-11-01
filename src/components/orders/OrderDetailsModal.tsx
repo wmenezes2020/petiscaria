@@ -55,9 +55,9 @@ export function OrderDetailsModal({ order, onClose }: OrderDetailsModalProps) {
                         <div>
                             <p className="text-sm text-gray-500">Cliente / Mesa</p>
                             <div className="flex items-center gap-2 font-semibold text-gray-900">
-                                {order.table ? (
+                                {order.tableName || order.table ? (
                                     <>
-                                        <Package className="h-4 w-4 text-gray-600" /> Mesa {order.table.name}
+                                        <Package className="h-4 w-4 text-gray-600" /> Mesa {order.tableName ?? String(order.table?.number ?? '')}
                                     </>
                                 ) : order.customer?.name ? (
                                     <>
@@ -103,12 +103,6 @@ export function OrderDetailsModal({ order, onClose }: OrderDetailsModalProps) {
 
                     {/* Total */}
                     <div className="mt-6 pt-4 border-t border-gray-100 space-y-2">
-                        {order.discount > 0 && (
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-gray-700">Desconto:</span>
-                                <span className="font-medium text-red-600">- {formatCurrency(order.discount)}</span>
-                            </div>
-                        )}
                         <div className="flex justify-between items-center text-lg">
                             <span className="font-semibold text-gray-800">Total do Pedido:</span>
                             <span className="font-bold text-indigo-700">{formatCurrency(order.total)}</span>
