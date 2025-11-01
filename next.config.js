@@ -13,6 +13,8 @@ const nextConfig = {
   },
   // Configura páginas para serem estáticas
   trailingSlash: true,
+  // Ensure React strict mode doesn't cause hydration issues
+  reactStrictMode: true,
   async headers() {
     return [
       {
