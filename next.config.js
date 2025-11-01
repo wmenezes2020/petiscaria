@@ -30,18 +30,14 @@ const nextConfig = {
   },
   // Configura páginas para serem estáticas
   trailingSlash: true,
-  // CRITICAL: Forçar todas as páginas a serem renderizadas apenas no cliente
-  // Isso previne completamente hydration mismatch
-  // TESTE: Se isso resolver, sabemos que o problema é com SSR
-  // Depois podemos reativar SSR gradualmente
-  // output: 'export', // Isso desabilitaria SSR completamente, mas quebra rotas dinâmicas
   // CRITICAL: Desabilitar strict mode para evitar problemas de hidratação em produção
   // Strict mode causa renderização dupla que pode causar mismatch
   reactStrictMode: false,
   // Garantir que não há problemas com server components
   poweredByHeader: false,
-  // Otimização para produção
-  compress: true,
+  // CRITICAL: Desabilitar compressão para garantir HTML idêntico entre servidor e cliente
+  // Isso previne diferenças que podem causar hydration mismatch
+  compress: false,
   // Prevenir problemas de hydration com logging
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,

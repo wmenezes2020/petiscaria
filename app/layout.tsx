@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 
-// CRITICAL: Toaster completamente removido do layout para evitar hydration mismatch
-// Os componentes podem usar react-hot-toast diretamente quando necessário
+// CRITICAL: Layout completamente estático - sem componentes client-side
+// Nenhum componente que possa causar hydration mismatch
 
 export const metadata: Metadata = {
   title: 'Petiscaria da Thay - Sistema de Gestão',
@@ -60,8 +60,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // CRITICAL: Layout minimalista - apenas HTML básico
+  // suppressHydrationWarning evita warnings mas NÃO resolve o problema fundamental
+  // O problema é que algo está criando múltiplos elementos raiz
   return (
-    <html lang="pt-BR" className="h-full" suppressHydrationWarning>
+    <html lang="pt-BR" className="h-full">
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -71,7 +74,8 @@ export default function RootLayout({
         <meta name="theme-color" content="#4f46e5" />
         <meta name="msapplication-TileColor" content="#4f46e5" />
       </head>
-      <body className="antialiased" suppressHydrationWarning>
+      <body className="antialiased h-full">
+        {/* CRITICAL: Nenhum wrapper adicional - apenas children direto */}
         {children}
       </body>
     </html>
