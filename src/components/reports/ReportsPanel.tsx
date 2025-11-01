@@ -96,23 +96,25 @@ export function ReportsPanel() {
                 totalSpent: index * 50 + 50 // Valor determinístico baseado no índice
             }));
 
-            // Receita por dia (simulado)
+            // Receita por dia - usar valores determinísticos para evitar hydration mismatch
             const revenueByDay = [];
             for (let i = 0; i < 7; i++) {
-                const date = new Date();
+                // Usar uma data base fixa para evitar diferenças servidor/cliente
+                const baseDate = new Date(2024, 0, 1); // Data fixa
+                const date = new Date(baseDate);
                 date.setDate(date.getDate() - i);
                 revenueByDay.unshift({
                     date: date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit' }),
-                    revenue: Math.floor(Math.random() * 500) + 100,
-                    orders: Math.floor(Math.random() * 20) + 5
+                    revenue: (i + 1) * 100 + 50, // Valor determinístico baseado no índice
+                    orders: (i + 1) * 3 + 2 // Valor determinístico baseado no índice
                 });
             }
 
-            // Receita por categoria (simulado)
+            // Receita por categoria - usar valores determinísticos para evitar hydration mismatch
             const categories = ['Petiscos', 'Bebidas', 'Sobremesas', 'Entradas'];
-            const revenueByCategory = categories.map(category => ({
+            const revenueByCategory = categories.map((category, index) => ({
                 category,
-                revenue: Math.floor(Math.random() * 1000) + 200,
+                revenue: (index + 1) * 250 + 150, // Valor determinístico baseado no índice
                 percentage: 0
             }));
 
@@ -174,7 +176,11 @@ export function ReportsPanel() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `relatorio-vendas-${new Date().toISOString().split('T')[0]}.txt`;
+        // Usar data atual apenas se estiver no cliente
+        const dateStr = typeof window !== 'undefined' 
+            ? new Date().toISOString().split('T')[0] 
+            : '2024-01-01';
+        a.download = `relatorio-vendas-${dateStr}.txt`;
         a.style.display = 'none';
         document.body.appendChild(a);
         a.click();
