@@ -2,7 +2,23 @@
 const nextConfig = {
   // Removido output: 'standalone' para usar npm start (mesmo processo que local)
   images: {
-    domains: ['localhost', 'api.petiscariadathay.com'],
+    // Usar remotePatterns ao invés de domains (deprecated)
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.petiscariadathay.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+    // Desabilitar otimização de imagens se não houver sharp instalado
+    unoptimized: false,
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1',

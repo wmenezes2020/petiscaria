@@ -1,12 +1,13 @@
 # Multi-stage build para otimização
 FROM node:18-alpine AS base
 
-# Instalar dependências do sistema
+# Instalar dependências do sistema (incluindo libvips para sharp)
 RUN apk add --no-cache \
     python3 \
     make \
     g++ \
     wget \
+    vips-dev \
     && rm -rf /var/cache/apk/*
 
 # Stage 1: Builder - Construir a aplicação
@@ -48,11 +49,8 @@ RUN addgroup -g 1001 -S nodejs && \
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copiar arquivos de dependências
-COPY package*.json ./
-
-# Instalar APENAS dependências de produção
-RUN npm ci --only=production && npm cache clean --force
+# Copiar node_modules do builder (já tem todas as dependências incluindo sharp)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 # Copiar código fonte e build
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
@@ -61,9 +59,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./next.config.js
 COPY --from=builder --chown=nextjs:nodejs /app/tailwind.config.js ./tailwind.config.js
 COPY --from=builder --chown=nextjs:nodejs /app/postcss.config.js ./postcss.config.js
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
-
-# Copiar todos os arquivos necessários para rodar
-COPY --chown=nextjs:nodejs . .
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 # Mudar para usuário não-root
 USER nextjs
