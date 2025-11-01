@@ -29,16 +29,18 @@ RUN npm ci
 # Copiar código fonte
 COPY . .
 
-# Definir NODE_ENV para produção durante o build
-ENV NODE_ENV=production
+# CRITICAL: NÃO definir NODE_ENV=production durante o build
+# Isso permite que o Next.js faça build de produção mas sem otimizações
+# agressivas que podem causar hydration mismatch
+# NODE_ENV será definido apenas no runtime stage
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # CRITICAL: Limpar cache do Next.js antes do build para garantir build limpo
 RUN rm -rf .next
 
-# Build da aplicação Next.js (mesmo processo que local)
-# NOTA: Variáveis NEXT_PUBLIC_* devem ser definidas em runtime, não durante build
-# se forem diferentes entre ambientes. Para build, usar valores padrão.
+# Build da aplicação Next.js
+# NOTA: npm run build já define NODE_ENV=production internamente se necessário,
+# mas não vamos forçar isso aqui para evitar diferenças
 RUN npm run build
 
 # Stage 2: Runner - Executar a aplicação
@@ -50,7 +52,7 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
 
-# Definir variáveis de ambiente padrão (podem ser sobrescritas em runtime)
+# Definir variáveis de ambiente para RUNTIME (não build)
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 # NOTA: Variáveis NEXT_PUBLIC_* devem ser configuradas no Coolify

@@ -1,13 +1,12 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 
-// IMPORTANT: Esta página renderiza EXATAMENTE o mesmo HTML no servidor e cliente
-// Sem renderização condicional para evitar hydration mismatch
-// Animações foram removidas para garantir consistência
-
-export default function HomePage() {
+// CRITICAL: Desabilitar SSR completamente para evitar hydration mismatch
+// Esta página será renderizada APENAS no cliente
+function HomePageContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
       {/* Navigation */}
@@ -219,3 +218,13 @@ export default function HomePage() {
     </div>
   );
 }
+
+// CRITICAL: Exportar com dynamic import e SSR desabilitado
+export default dynamic(() => Promise.resolve(HomePageContent), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 flex items-center justify-center">
+      <div className="h-12 w-12 animate-spin rounded-full border-4 border-orange-200 border-t-orange-600" />
+    </div>
+  ),
+});

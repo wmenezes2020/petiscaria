@@ -42,6 +42,11 @@ const nextConfig = {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
   },
+  // CRITICAL: Garantir que o build seja consistente entre local e Docker
+  // Usar SWC para minificação (mais consistente que Terser)
+  swcMinify: true,
+  // Garantir que o output seja estável
+  generateEtags: false, // Evitar diferenças em ETags entre builds
   async headers() {
     return [
       {
