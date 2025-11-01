@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { ToasterProvider } from '@/components/providers/ToasterProvider';
 
 export const metadata: Metadata = {
   title: 'Petiscaria da Thay - Sistema de Gestão',
@@ -71,6 +72,8 @@ export default function RootLayout({
       <body className="antialiased" suppressHydrationWarning>
         <div id="__next" suppressHydrationWarning>
           {children}
+          {/* Single Toaster instance for entire app */}
+          <ToasterProvider />
         </div>
       </body>
     </html>

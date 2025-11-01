@@ -2,7 +2,8 @@
 
 import '../globals.css';
 import dynamic from 'next/dynamic';
-import { ToasterWrapper } from '@/components/providers/ToasterWrapper';
+
+// REMOVED: ToasterWrapper - agora está no root layout para evitar múltiplas instâncias
 
 const AppShell = dynamic(() => import('@/components/layout/AppShell').then(mod => ({ default: mod.default })), {
   ssr: false,
@@ -22,9 +23,6 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <ToasterWrapper />
-      <AppShell>{children}</AppShell>
-    </>
+    <AppShell>{children}</AppShell>
   );
 }

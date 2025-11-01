@@ -14,47 +14,37 @@ const Toaster = dynamic(
 
 /**
  * Toaster Provider that mounts ONLY on client, AFTER hydration completes
- * Uses a delayed mount to ensure React hydration is fully complete
+ * This ensures no hydration mismatch and prevents "Only one element on document" errors
  */
 export function ToasterProvider() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // CRITICAL: Wait for hydration to complete
-    // Use a combination of RAF and setTimeout to ensure we're past hydration
-    let mounted = false;
-    
-    const mount = () => {
-      if (mounted) return;
-      
-      // Wait for next frame (after React hydration)
+    // CRITICAL: Only mount on client, after hydration completes
+    if (typeof window === 'undefined') return;
+
+    // Wait for hydration to complete using multiple RAFs
+    // This ensures React has finished hydrating before we mount the Toaster
+    const mountTimeout = setTimeout(() => {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          // Additional delay to be absolutely sure hydration is done
+          // Small additional delay to ensure hydration is fully complete
           setTimeout(() => {
-            mounted = true;
             setMounted(true);
-          }, 50);
+          }, 0);
         });
       });
-    };
+    }, 0);
 
-    // Only mount if we're in the browser
-    if (typeof window !== 'undefined') {
-      mount();
-    }
+    return () => clearTimeout(mountTimeout);
   }, []);
 
   // NEVER render on server - return null
-  if (typeof window === 'undefined') {
+  if (typeof window === 'undefined' || !mounted) {
     return null;
   }
 
-  // Only render after mounting on client
-  if (!mounted) {
-    return null;
-  }
-
+  // React-hot-toast creates its own container, but mounting after hydration prevents conflicts
   return (
     <Toaster
       position="top-right"
