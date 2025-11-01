@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { ClientProviders } from '@/components/providers/ClientProviders';
-import { ToasterProvider } from '@/components/providers/ToasterProvider';
 
 export const metadata: Metadata = {
   title: 'Petiscaria da Thay - Sistema de Gestão',
@@ -60,21 +58,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className="h-full">
+    <html lang="pt-BR" className="h-full" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content="#4f46e5" /> {/* Atualizado para primary-600 */}
-        <meta name="msapplication-TileColor" content="#4f46e5" /> {/* Atualizado para primary-600 */}
+        <meta name="theme-color" content="#4f46e5" />
+        <meta name="msapplication-TileColor" content="#4f46e5" />
       </head>
       <body className="antialiased" suppressHydrationWarning>
-        <ClientProviders>{children}</ClientProviders>
-        <ToasterProvider />
+        <div id="__next" suppressHydrationWarning>
+          {children}
+        </div>
       </body>
     </html>
   );
 }
-

@@ -2,6 +2,7 @@
 
 import '../globals.css';
 import dynamic from 'next/dynamic';
+import { ToasterWrapper } from '@/components/providers/ToasterWrapper';
 
 const AppShell = dynamic(() => import('@/components/layout/AppShell').then(mod => ({ default: mod.default })), {
   ssr: false,
@@ -20,5 +21,10 @@ export default function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AppShell>{children}</AppShell>;
+  return (
+    <>
+      <ToasterWrapper />
+      <AppShell>{children}</AppShell>
+    </>
+  );
 }
