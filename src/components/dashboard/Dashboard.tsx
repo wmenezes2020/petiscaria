@@ -63,7 +63,7 @@ export function Dashboard() {
 
             const orders = Array.isArray(ordersData) ? ordersData : [];
             const customers = Array.isArray(customersData) ? customersData : [];
-            const products = Array.isArray(productsData) ? productsData : productsData.products || [];
+            const products = Array.isArray(productsData) ? productsData : [];
             const payments = Array.isArray(paymentsData) ? paymentsData : [];
 
             // Calcular métricas

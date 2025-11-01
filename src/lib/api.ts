@@ -676,6 +676,7 @@ export interface OrderResponse {
   customerName?: string;
   tableId: string;
   tableName?: string;
+  channel?: 'table' | 'counter' | 'delivery' | 'takeaway' | string;
   status: 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
   total: number;

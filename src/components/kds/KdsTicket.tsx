@@ -56,7 +56,7 @@ export function KdsTicket({ order, onUpdateStatus }: KdsTicketProps) {
       {/* Header */}
       <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
         <h3 className="text-xl font-bold text-gray-900">
-          {order.table ? `Mesa ${order.table.name}` : 'Balcão'}
+          {order.table ? `Mesa ${order.table.number}` : order.tableName ? `Mesa ${order.tableName}` : 'Balcão'}
         </h3>
         <div className="flex items-center text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
           <Clock size={16} className="mr-1.5 text-gray-400" />
