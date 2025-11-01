@@ -22,7 +22,7 @@ COPY next.config.js ./
 COPY tailwind.config.js ./
 COPY postcss.config.js ./
 
-# Instalar dependências (incluindo dev para build)
+# Instalar todas as dependências (incluindo dev para build)
 RUN npm ci
 
 # Copiar código fonte
@@ -32,7 +32,7 @@ COPY . .
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build da aplicação Next.js em modo standalone
+# Build da aplicação Next.js (mesmo processo que local)
 RUN npm run build
 
 # Stage 2: Runner - Executar a aplicação
@@ -48,10 +48,22 @@ RUN addgroup -g 1001 -S nodejs && \
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copiar apenas os arquivos necessários do build standalone
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/.next/standalone ./
+# Copiar arquivos de dependências
+COPY package*.json ./
+
+# Instalar APENAS dependências de produção
+RUN npm ci --only=production && npm cache clean --force
+
+# Copiar código fonte e build
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./next.config.js
+COPY --from=builder --chown=nextjs:nodejs /app/tailwind.config.js ./tailwind.config.js
+COPY --from=builder --chown=nextjs:nodejs /app/postcss.config.js ./postcss.config.js
+COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
+
+# Copiar todos os arquivos necessários para rodar
+COPY --chown=nextjs:nodejs . .
 
 # Mudar para usuário não-root
 USER nextjs
@@ -66,5 +78,5 @@ ENV HOSTNAME="0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
-# Comando de inicialização usando o server.js do standalone
-CMD ["node", "server.js"]
+# Comando de inicialização usando npm start (mesmo que local)
+CMD ["npm", "start"]

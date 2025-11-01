@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable standalone output for Docker optimization
-  output: 'standalone',
+  // Removido output: 'standalone' para usar npm start (mesmo processo que local)
   images: {
     domains: ['localhost', 'api.petiscariadathay.com'],
   },
