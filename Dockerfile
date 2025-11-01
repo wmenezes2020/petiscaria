@@ -1,12 +1,22 @@
 # ============================================================================
-# 🚀 DOCKERFILE OTIMIZADO - ACERTOAI DASHBOARD (Next.js)
+# 🚀 DOCKERFILE OTIMIZADO - PETISCARIA DA THAY (Next.js)
 # ============================================================================
-# Production Build com variáveis de ambiente em build-time
+# Production Build - Corrigido para evitar hydration mismatch
 # ============================================================================
 
 # Stage 1: Dependencies
 FROM node:18-alpine AS deps
-RUN apk add --no-cache libc6-compat
+
+# Instalar dependências do sistema (incluindo libvips para sharp)
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    wget \
+    vips-dev \
+    libc6-compat \
+    && rm -rf /var/cache/apk/*
+
 WORKDIR /app
 
 # Copy package files
@@ -19,6 +29,10 @@ RUN npm ci --prefer-offline --no-audit --progress=false
 # Stage 2: Builder
 # ============================================================================
 FROM node:18-alpine AS builder
+
+# Instalar dependências do sistema
+RUN apk add --no-cache python3 make g++ vips-dev libc6-compat
+
 WORKDIR /app
 
 # Copy dependencies from deps stage
@@ -39,46 +53,53 @@ ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
 ENV NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME
 ENV NEXT_PUBLIC_APP_VERSION=$NEXT_PUBLIC_APP_VERSION
 
-# Set build environment
+# CRITICAL: NÃO definir NODE_ENV=production durante o build
+# Isso causa hydration mismatch porque o Next.js otimiza diferente
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
+# NODE_ENV será definido apenas no runtime stage
+
+# CRITICAL: Limpar cache antes do build
+RUN rm -rf .next node_modules/.cache
 
 # Build the application with embedded env vars
 RUN npm run build && \
     echo "✅ Build concluído com sucesso" && \
     echo "🔍 Verificando arquivos gerados:" && \
-    ls -la .next/
+    ls -la .next/ | head -20
 
 # ============================================================================
 # Stage 3: Runner (Production)
 # ============================================================================
 FROM node:18-alpine AS runner
+
 WORKDIR /app
 
+# Instalar dependências do sistema necessárias para runtime
+RUN apk add --no-cache curl
+
+# CRITICAL: NODE_ENV=production apenas no RUNTIME, não durante build
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Install curl for healthcheck
-RUN apk add --no-cache curl
-
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs && \
-    chown -R nextjs:nodejs /app
+    adduser --system --uid 1001 nextjs
 
 # Copy necessary files from builder
-COPY --from=builder /app/next.config.js ./
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/tailwind.config.js ./tailwind.config.js
+COPY --from=builder --chown=nextjs:nodejs /app/postcss.config.js ./postcss.config.js
+COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 
-# Copy built files with correct permissions
-# standalone output already includes server.js and all dependencies
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copy node_modules (production only)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# ✅ CRITICAL: Copy public folder for images and static assets
+# Copy built files (NÃO usar standalone - usar padrão do Next.js)
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# ✅ RUNTIME: Env vars (for server-side, client already has them embedded)
+# ✅ RUNTIME: Env vars (para server-side, client já tem embedded durante build)
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_WS_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
@@ -93,10 +114,10 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# ✅ HEALTHCHECK: Verificar se aplicação está respondendo com HTTP
-# Usa curl que é mais confiável em containers Docker
+# ✅ HEALTHCHECK: Verificar se aplicação está respondendo
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:3000/ || exit 1
+    CMD curl -f http://localhost:3000/api/health || exit 1
 
-# Start the application
-CMD ["node", "server.js"]
+# CRITICAL: Usar npm start (padrão do Next.js) ao invés de node server.js
+# Isso funciona igual ao build local
+CMD ["npm", "start"]
