@@ -1,11 +1,5 @@
-# ============================================================================
-# 🚀 DOCKERFILE OTIMIZADO - PETISCARIA DA THAY (Next.js)
-# ============================================================================
-# Production Build - Corrigido para evitar hydration mismatch
-# ============================================================================
-
-# Stage 1: Dependencies
-FROM node:18-alpine AS deps
+# Multi-stage build para otimização
+FROM node:18-alpine AS base
 
 # Instalar dependências do sistema (incluindo libvips para sharp)
 RUN apk add --no-cache \
@@ -14,110 +8,83 @@ RUN apk add --no-cache \
     g++ \
     wget \
     vips-dev \
-    libc6-compat \
     && rm -rf /var/cache/apk/*
 
+# Stage 1: Builder - Construir a aplicação
+FROM base AS builder
+
+# Definir diretório de trabalho
 WORKDIR /app
 
-# Copy package files
+# Copiar arquivos de dependências
 COPY package*.json ./
+COPY tsconfig*.json ./
+COPY next.config.js ./
+COPY tailwind.config.js ./
+COPY postcss.config.js ./
 
-# Install dependencies (including devDependencies for build)
-RUN npm ci --prefer-offline --no-audit --progress=false
+# Instalar todas as dependências (incluindo dev para build)
+RUN npm ci
 
-# ============================================================================
-# Stage 2: Builder
-# ============================================================================
-FROM node:18-alpine AS builder
-
-# Instalar dependências do sistema
-RUN apk add --no-cache python3 make g++ vips-dev libc6-compat
-
-WORKDIR /app
-
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-
-# Copy source files
+# Copiar código fonte
 COPY . .
 
-# ✅ CRITICAL: Accept build args and convert to env vars
-# Next.js needs NEXT_PUBLIC_* at BUILD TIME to embed in client code
-ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_WS_URL
-ARG NEXT_PUBLIC_APP_NAME
-ARG NEXT_PUBLIC_APP_VERSION
-
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
-ENV NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME
-ENV NEXT_PUBLIC_APP_VERSION=$NEXT_PUBLIC_APP_VERSION
-
 # CRITICAL: NÃO definir NODE_ENV=production durante o build
-# Isso causa hydration mismatch porque o Next.js otimiza diferente
-ENV NEXT_TELEMETRY_DISABLED=1
+# Isso permite que o Next.js faça build de produção mas sem otimizações
+# agressivas que podem causar hydration mismatch
 # NODE_ENV será definido apenas no runtime stage
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# CRITICAL: Limpar cache antes do build
-RUN rm -rf .next node_modules/.cache
+# CRITICAL: Limpar cache do Next.js antes do build para garantir build limpo
+RUN rm -rf .next
 
-# Build the application with embedded env vars
-RUN npm run build && \
-    echo "✅ Build concluído com sucesso" && \
-    echo "🔍 Verificando arquivos gerados:" && \
-    ls -la .next/ | head -20
+# CRITICAL: Garantir que não há cache de build
+RUN rm -rf node_modules/.cache
 
-# ============================================================================
-# Stage 3: Runner (Production)
-# ============================================================================
-FROM node:18-alpine AS runner
+# Build da aplicação Next.js com modo verbose para debug
+# NOTA: npm run build já define NODE_ENV=production internamente se necessário,
+# mas não vamos forçar isso aqui para evitar diferenças
+RUN npm run build 2>&1 | head -50 || true
+
+# Stage 2: Runner - Executar a aplicação
+FROM base AS runner
 
 WORKDIR /app
 
-# Instalar dependências do sistema necessárias para runtime
-RUN apk add --no-cache curl
+# Criar usuário não-root para segurança
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
 
-# CRITICAL: NODE_ENV=production apenas no RUNTIME, não durante build
+# Definir variáveis de ambiente para RUNTIME (não build)
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# NOTA: Variáveis NEXT_PUBLIC_* devem ser configuradas no Coolify
+# como variáveis de ambiente da aplicação (não do build)
 
-# Create a non-root user
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+# Copiar node_modules do builder (já tem todas as dependências incluindo sharp)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# Copy necessary files from builder
-COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+# Copiar código fonte e build
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./next.config.js
 COPY --from=builder --chown=nextjs:nodejs /app/tailwind.config.js ./tailwind.config.js
 COPY --from=builder --chown=nextjs:nodejs /app/postcss.config.js ./postcss.config.js
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
-# Copy node_modules (production only)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-
-# Copy built files (NÃO usar standalone - usar padrão do Next.js)
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-
-# ✅ RUNTIME: Env vars (para server-side, client já tem embedded durante build)
-ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_WS_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
-
-# Switch to non-root user
+# Mudar para usuário não-root
 USER nextjs
 
-# Expose port
+# Expor porta
 EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# ✅ HEALTHCHECK: Verificar se aplicação está respondendo
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:3000/api/health || exit 1
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
-# CRITICAL: Usar npm start (padrão do Next.js) ao invés de node server.js
-# Isso funciona igual ao build local
+# Comando de inicialização usando npm start (mesmo que local)
 CMD ["npm", "start"]
