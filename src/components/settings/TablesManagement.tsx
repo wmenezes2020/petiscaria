@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { PlusCircle, Edit, Trash2, MapPin, Users, Square, XCircle } from 'lucide-react';
 import { getTables, createTable, updateTable, deleteTable, getAreas, getLocations, TableResponse, AreaResponse, LocationResponse } from '@/lib/api';
 import { TableStatusBadge } from '@/components/tables/TableStatusBadge';
-import { createPortal } from 'react-dom';
+import { Portal } from '@/components/PortalRoot';
 
 interface TableFormData {
     name: string;
@@ -353,189 +353,190 @@ export function TablesManagement() {
             </div>
 
             {/* Form Modal */}
-            {mounted && isFormOpen && createPortal(
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
-                    <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto">
-                        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-gray-900">
-                                {editingTable ? 'Editar Mesa' : 'Nova Mesa'}
-                            </h3>
-                            <button onClick={handleCloseForm} className="text-gray-400 hover:text-gray-600">✕</button>
+            {mounted && isFormOpen && (
+                <Portal>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
+                        <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto">
+                            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                                <h3 className="text-xl font-bold text-gray-900">
+                                    {editingTable ? 'Editar Mesa' : 'Nova Mesa'}
+                                </h3>
+                                <button onClick={handleCloseForm} className="text-gray-400 hover:text-gray-600">✕</button>
+                            </div>
+
+                            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Nome da Mesa *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            placeholder="Ex: Mesa 1"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Capacidade *
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="20"
+                                            value={formData.capacity}
+                                            onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 4 })}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            placeholder="4"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Localização *
+                                        </label>
+                                        <select
+                                            value={formData.locationId}
+                                            onChange={(e) => setFormData({ ...formData, locationId: e.target.value })}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            required
+                                        >
+                                            <option value="">Selecione uma localização</option>
+                                            {locations.map((location) => (
+                                                <option key={location.id} value={location.id}>
+                                                    {location.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Área *
+                                        </label>
+                                        <select
+                                            value={formData.areaId}
+                                            onChange={(e) => setFormData({ ...formData, areaId: e.target.value })}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            required
+                                        >
+                                            <option value="">Selecione uma área</option>
+                                            {areas.map((area) => (
+                                                <option key={area.id} value={area.id}>
+                                                    {area.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Descrição
+                                    </label>
+                                    <textarea
+                                        value={formData.description}
+                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                        rows={3}
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        placeholder="Descrição opcional da mesa..."
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Coordenada X
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={formData.coordinates?.x || 0}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                coordinates: {
+                                                    x: parseInt(e.target.value) || 0,
+                                                    y: formData.coordinates?.y || 0
+                                                }
+                                            })}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            placeholder="0"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block textsm font-medium text-gray-700 mb-1">
+                                            Coordenada Y
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={formData.coordinates?.y || 0}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                coordinates: {
+                                                    x: formData.coordinates?.x || 0,
+                                                    y: parseInt(e.target.value) || 0
+                                                }
+                                            })}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-6">
+                                    <div className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            id="isActive"
+                                            checked={formData.isActive}
+                                            onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                            className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded-lg"
+                                        />
+                                        <label htmlFor="isActive" className="ml-2 block text-base text-gray-900">
+                                            Mesa ativa
+                                        </label>
+                                    </div>
+
+                                    <div className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            id="isAvailable"
+                                            checked={formData.isAvailable}
+                                            onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
+                                            className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded-lg"
+                                        />
+                                        <label htmlFor="isAvailable" className="ml-2 block text-base text-gray-900">
+                                            Mesa disponível
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end space-x-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseForm}
+                                        className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-8 py-3 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md hover:shadow-lg"
+                                    >
+                                        {editingTable ? 'Atualizar' : 'Criar'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-
-                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Nome da Mesa *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        placeholder="Ex: Mesa 1"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Capacidade *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="20"
-                                        value={formData.capacity}
-                                        onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 4 })}
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        placeholder="4"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Localização *
-                                    </label>
-                                    <select
-                                        value={formData.locationId}
-                                        onChange={(e) => setFormData({ ...formData, locationId: e.target.value })}
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        required
-                                    >
-                                        <option value="">Selecione uma localização</option>
-                                        {locations.map((location) => (
-                                            <option key={location.id} value={location.id}>
-                                                {location.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Área *
-                                    </label>
-                                    <select
-                                        value={formData.areaId}
-                                        onChange={(e) => setFormData({ ...formData, areaId: e.target.value })}
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        required
-                                    >
-                                        <option value="">Selecione uma área</option>
-                                        {areas.map((area) => (
-                                            <option key={area.id} value={area.id}>
-                                                {area.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Descrição
-                                </label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    rows={3}
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    placeholder="Descrição opcional da mesa..."
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Coordenada X
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={formData.coordinates?.x || 0}
-                                        onChange={(e) => setFormData({
-                                            ...formData,
-                                            coordinates: {
-                                                x: parseInt(e.target.value) || 0,
-                                                y: formData.coordinates?.y || 0
-                                            }
-                                        })}
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        placeholder="0"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Coordenada Y
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={formData.coordinates?.y || 0}
-                                        onChange={(e) => setFormData({
-                                            ...formData,
-                                            coordinates: {
-                                                x: formData.coordinates?.x || 0,
-                                                y: parseInt(e.target.value) || 0
-                                            }
-                                        })}
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        placeholder="0"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-center space-x-6">
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        id="isActive"
-                                        checked={formData.isActive}
-                                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                        className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded-lg"
-                                    />
-                                    <label htmlFor="isActive" className="ml-2 block text-base text-gray-900">
-                                        Mesa ativa
-                                    </label>
-                                </div>
-
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        id="isAvailable"
-                                        checked={formData.isAvailable}
-                                        onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
-                                        className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded-lg"
-                                    />
-                                    <label htmlFor="isAvailable" className="ml-2 block text-base text-gray-900">
-                                        Mesa disponível
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end space-x-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseForm}
-                                    className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-8 py-3 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md hover:shadow-lg"
-                                >
-                                    {editingTable ? 'Atualizar' : 'Criar'}
-                                </button>
-                            </div>
-                        </form>
                     </div>
-                </div>,
-                document.body
+                </Portal>
             )}
         </div>
     );
