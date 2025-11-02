@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Sidebar } from './sidebar';
 import { NotificationsPanel } from '@/components/notifications/NotificationsPanel';
@@ -9,6 +9,18 @@ import { useAuthStore } from '@/stores/authStore';
 
 interface AppShellProps {
   children: React.ReactNode;
+}
+
+// SOLUÇÃO DEFINITIVA: Componente de loading consistente
+function LoadingScreen({ message = 'Carregando…' }: { message?: string }) {
+  return (
+    <div className="flex h-screen items-center justify-center bg-gray-100">
+      <div className="flex flex-col items-center space-y-4 text-gray-600">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+        <p className="text-sm font-medium">{message}</p>
+      </div>
+    </div>
+  );
 }
 
 export function AppShell({ children }: AppShellProps) {
@@ -21,43 +33,38 @@ export function AppShell({ children }: AppShellProps) {
   }));
 
   const [isMounted, setIsMounted] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     setIsMounted(true);
-    checkAuthStatus();
+    
+    // Verificar autenticação apenas no cliente
+    const check = async () => {
+      await checkAuthStatus();
+      setIsChecking(false);
+    };
+    
+    check();
   }, [checkAuthStatus]);
 
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || isChecking) return;
 
     if (!isAuthenticated) {
       const redirectPath = pathname || '/app';
       router.replace(`/login?redirect=${encodeURIComponent(redirectPath)}`);
     }
-  }, [isMounted, isAuthenticated, pathname, router]);
+  }, [isMounted, isChecking, isAuthenticated, pathname, router]);
 
-  // Prevenir hydration mismatch - sempre mostrar loading até montar
-  if (!isMounted) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-100">
-        <div className="flex flex-col items-center space-y-4 text-gray-600">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
-          <p className="text-sm font-medium">Carregando…</p>
-        </div>
-      </div>
-    );
+  // CRITICAL: Renderizar SEMPRE o mesmo HTML no servidor e cliente inicialmente
+  // Usar suppressHydrationWarning para permitir mudança após mount
+  if (!isMounted || isChecking) {
+    return <LoadingScreen />;
   }
 
   // Se não autenticado, mostrar loading durante redirecionamento
   if (!isAuthenticated) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-100">
-        <div className="flex flex-col items-center space-y-4 text-gray-600">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
-          <p className="text-sm font-medium">Redirecionando para o login…</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen message="Redirecionando para o login…" />;
   }
 
   return (
