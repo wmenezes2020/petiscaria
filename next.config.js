@@ -23,42 +23,26 @@ const nextConfig = {
   experimental: {
     isrMemoryCacheSize: 0,
   },
-  // CRITICAL: Garantir comportamento consistente entre desenvolvimento e produção
+  // Produção estável
+  output: 'standalone',
   reactStrictMode: false,
   poweredByHeader: false,
-  compress: false,
+  compress: true,
   swcMinify: true,
   generateEtags: false,
   productionBrowserSourceMaps: false,
-  // CRITICAL: Desabilitar otimizações agressivas que podem causar hydration mismatch
   compiler: {
-    removeConsole: false, // Manter console.log para debug
+    removeConsole: false,
   },
-  // CRITICAL: Garantir que o HTML seja sempre consistente
-  trailingSlash: true,
-  skipTrailingSlashRedirect: false,
   async headers() {
     return [
       {
         source: '/(.*)',
         headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
-          },
-          // CRITICAL: Cache control para evitar servir HTML antigo
-          {
-            key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate',
-          },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
         ],
       },
     ];
