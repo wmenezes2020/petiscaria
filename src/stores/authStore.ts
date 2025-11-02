@@ -243,20 +243,16 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       checkAuthStatus: () => {
+        // CRITICAL: Só verificar no cliente
+        if (typeof window === 'undefined') return;
+        
         const state = get();
-        console.log('🔍 Verificando status de autenticação:', {
-          isAuthenticated: state.isAuthenticated,
-          hasUser: !!state.user,
-          hasToken: !!state.accessToken
-        });
         
         // Verificar se há dados no storage
         const storedData = getFromStorage('auth-storage');
-        console.log('📦 Dados armazenados:', storedData);
         
         // Se tem dados no storage mas não no estado, restaurar
         if (storedData && storedData.accessToken && !state.accessToken) {
-          console.log('🔄 Restaurando dados do storage');
           set({
             user: storedData.user,
             accessToken: storedData.accessToken,
@@ -272,19 +268,30 @@ export const useAuthStore = create<AuthStore>()(
         
         // Se tem token mas não está marcado como autenticado, corrigir o estado
         if (state.accessToken && !state.isAuthenticated) {
-          console.log('🔧 Corrigindo estado de autenticação');
           set({ isAuthenticated: true });
         }
       },
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({
-        user: state.user,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
-        isAuthenticated: state.isAuthenticated,
-      }),
+      // CRITICAL: Só usar storage no cliente
+      storage: {
+        getItem: (name) => {
+          if (typeof window === 'undefined') return null;
+          const str = localStorage.getItem(name);
+          return str ? JSON.parse(str) : null;
+        },
+        setItem: (name, value) => {
+          if (typeof window === 'undefined') return;
+          localStorage.setItem(name, JSON.stringify(value));
+        },
+        removeItem: (name) => {
+          if (typeof window === 'undefined') return;
+          localStorage.removeItem(name);
+        },
+      },
+      // CRITICAL: Desabilitar hidratação inicial para evitar mismatch
+      skipHydration: true,
     }
   )
 );

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { ClientOnly } from '@/components/ClientOnly';
 
 export const metadata: Metadata = {
   title: 'Petiscaria da Thay - Sistema de Gestão',
@@ -52,31 +53,35 @@ export const metadata: Metadata = {
   },
 };
 
+// SOLUÇÃO DEFINITIVA: Desabilitar COMPLETAMENTE SSR para páginas dinâmicas
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // CRITICAL: Layout minimalista - apenas HTML básico
-  // Remover wrapper div id="__next" que pode estar causando conflito
-  // O Next.js já cria sua própria estrutura
   return (
     <html lang="pt-BR">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-        <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content="#4f46e5" />
-        <meta name="msapplication-TileColor" content="#4f46e5" />
       </head>
-      <body>
-        {/* CRITICAL: Children direto sem wrappers adicionais */}
-        {/* O Next.js cria automaticamente a estrutura necessária */}
-        {children}
+      <body suppressHydrationWarning>
+        <ClientOnly
+          fallback={
+            <div className="flex h-screen items-center justify-center bg-gray-100">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-orange-200 border-t-orange-600" />
+                <p className="text-sm font-medium text-gray-600">Carregando...</p>
+              </div>
+            </div>
+          }
+        >
+          {children}
+        </ClientOnly>
       </body>
     </html>
   );
