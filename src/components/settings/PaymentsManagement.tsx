@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PlusCircle, Edit, Trash2, CreditCard, DollarSign, Clock, User, Receipt, Search, Filter, XCircle } from 'lucide-react';
 import { getPayments, createPayment, updatePayment, deletePayment, getOrders, PaymentResponse, OrderResponse } from '@/lib/api';
-import { createPortal } from 'react-dom';
+import { Portal } from '@/components/PortalRoot';
 import { X, Hash, FileText, CheckCircle } from 'lucide-react';
 
 interface PaymentFormData {
@@ -411,162 +411,163 @@ export function PaymentsManagement() {
             </div>
 
             {/* Form Modal */}
-            {isFormOpen && createPortal(
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
-                    <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] flex flex-col">
-                        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-gray-900">
-                                {editingPayment ? 'Editar Pagamento' : 'Novo Pagamento'}
-                            </h3>
-                            <button onClick={handleCloseForm} className="text-gray-400 hover:text-gray-600">✕</button>
-                        </div>
+            {isFormOpen && (
+                <Portal>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
+                        <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] flex flex-col">
+                            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                                <h3 className="text-xl font-bold text-gray-900">
+                                    {editingPayment ? 'Editar Pagamento' : 'Novo Pagamento'}
+                                </h3>
+                                <button onClick={handleCloseForm} className="text-gray-400 hover:text-gray-600">✕</button>
+                            </div>
 
-                        <form onSubmit={handleSubmit} className="p-6 space-y-5 flex-1 overflow-y-auto">
-                            <div>
-                                <label htmlFor="orderId" className="input-label">
-                                    Pedido *
-                                </label>
-                                <div className="relative">
-                                    <Receipt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                    <select
-                                        id="orderId"
-                                        value={formData.orderId}
-                                        onChange={(e) => setFormData({ ...formData, orderId: e.target.value })}
-                                        className="input-field pl-10"
-                                        required
+                            <form onSubmit={handleSubmit} className="p-6 space-y-5 flex-1 overflow-y-auto">
+                                <div>
+                                    <label htmlFor="orderId" className="input-label">
+                                        Pedido *
+                                    </label>
+                                    <div className="relative">
+                                        <Receipt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                        <select
+                                            id="orderId"
+                                            value={formData.orderId}
+                                            onChange={(e) => setFormData({ ...formData, orderId: e.target.value })}
+                                            className="input-field pl-10"
+                                            required
+                                        >
+                                            <option value="">Selecione um pedido</option>
+                                            {(orders || []).map((order) => {
+                                                const totalNumber = typeof order.total === 'string' ? parseFloat(order.total) : Number(order.total ?? 0);
+                                                return (
+                                                    <option key={order.id} value={order.id}>
+                                                        Pedido #{order.id.slice(-8)} - {formatCurrency(totalNumber)}
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-5">
+                                    <div>
+                                        <label htmlFor="amount" className="input-label">
+                                            Valor *
+                                        </label>
+                                        <div className="relative">
+                                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <input
+                                                type="number"
+                                                id="amount"
+                                                step="0.01"
+                                                min="0.01"
+                                                value={formData.amount}
+                                                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                                                className="input-field pl-10"
+                                                placeholder="0.00"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="method" className="input-label">
+                                            Método de Pagamento *
+                                        </label>
+                                        <div className="relative">
+                                            <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <select
+                                                id="method"
+                                                value={formData.method}
+                                                onChange={(e) => setFormData({ ...formData, method: e.target.value as any })}
+                                                className="input-field pl-10"
+                                                required
+                                            >
+                                                <option value="CASH">Dinheiro</option>
+                                                <option value="CREDIT_CARD">Cartão de Crédito</option>
+                                                <option value="DEBIT_CARD">Cartão de Débito</option>
+                                                <option value="PIX">PIX</option>
+                                                <option value="TRANSFER">Transferência</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-5">
+                                    <div>
+                                        <label htmlFor="status" className="input-label">
+                                            Status
+                                        </label>
+                                        <div className="relative">
+                                            <CheckCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <select
+                                                id="status"
+                                                value={formData.status}
+                                                onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                                                className="input-field pl-10"
+                                            >
+                                                <option value="PENDING">Pendente</option>
+                                                <option value="COMPLETED">Concluído</option>
+                                                <option value="FAILED">Falhou</option>
+                                                <option value="REFUNDED">Reembolsado</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="transactionId" className="input-label">
+                                            ID da Transação
+                                        </label>
+                                        <div className="relative">
+                                            <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <input
+                                                type="text"
+                                                id="transactionId"
+                                                value={formData.transactionId}
+                                                onChange={(e) => setFormData({ ...formData, transactionId: e.target.value })}
+                                                className="input-field pl-10"
+                                                placeholder="ID da transação (opcional)"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label htmlFor="notes" className="input-label">
+                                        Observações
+                                    </label>
+                                    <div className="relative">
+                                        <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                        <textarea
+                                            id="notes"
+                                            value={formData.notes}
+                                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                            rows={3}
+                                            className="input-field pl-10"
+                                            placeholder="Observações sobre o pagamento..."
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="px-6 py-4 border-t border-gray-100 flex justify-end space-x-3 bg-gray-50 rounded-b-2xl">
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseForm}
+                                        className="btn-secondary"
                                     >
-                                        <option value="">Selecione um pedido</option>
-                                        {(orders || []).map((order) => {
-                                            const totalNumber = typeof order.total === 'string' ? parseFloat(order.total) : Number(order.total ?? 0);
-                                            return (
-                                                <option key={order.id} value={order.id}>
-                                                    Pedido #{order.id.slice(-8)} - {formatCurrency(totalNumber)}
-                                                </option>
-                                            );
-                                        })}
-                                    </select>
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="btn-primary"
+                                    >
+                                        {editingPayment ? 'Atualizar' : 'Criar'}
+                                    </button>
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-5">
-                                <div>
-                                    <label htmlFor="amount" className="input-label">
-                                        Valor *
-                                    </label>
-                                    <div className="relative">
-                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                        <input
-                                            type="number"
-                                            id="amount"
-                                            step="0.01"
-                                            min="0.01"
-                                            value={formData.amount}
-                                            onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                                            className="input-field pl-10"
-                                            placeholder="0.00"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label htmlFor="method" className="input-label">
-                                        Método de Pagamento *
-                                    </label>
-                                    <div className="relative">
-                                        <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                        <select
-                                            id="method"
-                                            value={formData.method}
-                                            onChange={(e) => setFormData({ ...formData, method: e.target.value as any })}
-                                            className="input-field pl-10"
-                                            required
-                                        >
-                                            <option value="CASH">Dinheiro</option>
-                                            <option value="CREDIT_CARD">Cartão de Crédito</option>
-                                            <option value="DEBIT_CARD">Cartão de Débito</option>
-                                            <option value="PIX">PIX</option>
-                                            <option value="TRANSFER">Transferência</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-5">
-                                <div>
-                                    <label htmlFor="status" className="input-label">
-                                        Status
-                                    </label>
-                                    <div className="relative">
-                                        <CheckCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                        <select
-                                            id="status"
-                                            value={formData.status}
-                                            onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                                            className="input-field pl-10"
-                                        >
-                                            <option value="PENDING">Pendente</option>
-                                            <option value="COMPLETED">Concluído</option>
-                                            <option value="FAILED">Falhou</option>
-                                            <option value="REFUNDED">Reembolsado</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label htmlFor="transactionId" className="input-label">
-                                        ID da Transação
-                                    </label>
-                                    <div className="relative">
-                                        <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                        <input
-                                            type="text"
-                                            id="transactionId"
-                                            value={formData.transactionId}
-                                            onChange={(e) => setFormData({ ...formData, transactionId: e.target.value })}
-                                            className="input-field pl-10"
-                                            placeholder="ID da transação (opcional)"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label htmlFor="notes" className="input-label">
-                                    Observações
-                                </label>
-                                <div className="relative">
-                                    <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                    <textarea
-                                        id="notes"
-                                        value={formData.notes}
-                                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                        rows={3}
-                                        className="input-field pl-10"
-                                        placeholder="Observações sobre o pagamento..."
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="px-6 py-4 border-t border-gray-100 flex justify-end space-x-3 bg-gray-50 rounded-b-2xl">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseForm}
-                                    className="btn-secondary"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="btn-primary"
-                                >
-                                    {editingPayment ? 'Atualizar' : 'Criar'}
-                                </button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
-                </div>,
-                document.body
+                </Portal>
             )}
         </div>
     );
