@@ -151,6 +151,12 @@ export function ReportsPanel() {
     };
 
     const generateReport = () => {
+        // CRITICAL: Verificar se estamos no cliente antes de acessar document
+        if (typeof window === 'undefined' || typeof document === 'undefined') {
+            console.warn('Cannot generate report during SSR');
+            return;
+        }
+        
         // Simular geração de relatório
         const reportContent = `
       RELATÓRIO DE VENDAS - ${new Date().toLocaleDateString('pt-BR')}
