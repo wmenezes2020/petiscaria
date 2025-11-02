@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { PlusCircle, Edit, Trash2, FolderOpen, Image as ImageIcon, XCircle, Loader2 } from 'lucide-react';
 import { getCategories, createCategory, updateCategory, deleteCategory, CategoryResponse } from '@/lib/api';
-import { createPortal } from 'react-dom';
+import { Portal } from '@/components/PortalRoot';
 
 interface CategoryFormData {
     name: string;
@@ -262,108 +262,109 @@ export function CategoriesManagement() {
             </div>
 
             {/* Form Modal */}
-            {mounted && isFormOpen && createPortal(
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
-                    <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] flex flex-col">
-                        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                                    <ImageIcon className="h-5 w-5 text-white" />
+            {mounted && isFormOpen && (
+                <Portal>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
+                        <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] flex flex-col">
+                            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                        <ImageIcon className="h-5 w-5 text-white" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900">
+                                        {editingCategory ? 'Editar Categoria' : 'Nova Categoria'}
+                                    </h3>
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900">
-                                    {editingCategory ? 'Editar Categoria' : 'Nova Categoria'}
-                                </h3>
+                                <button onClick={handleCloseForm} className="text-gray-400 hover:text-gray-600">✕</button>
                             </div>
-                            <button onClick={handleCloseForm} className="text-gray-400 hover:text-gray-600">✕</button>
+
+                            <form onSubmit={handleSubmit} className="p-6 space-y-5 flex-1 overflow-y-auto">
+                                <div>
+                                    <label className="input-label">
+                                        Nome da Categoria *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="input-field"
+                                        placeholder="Ex: Bebidas"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="input-label">
+                                        Descrição
+                                    </label>
+                                    <textarea
+                                        value={formData.description}
+                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                        rows={3}
+                                        className="input-field"
+                                        placeholder="Descrição opcional da categoria..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="input-label">
+                                        URL da Imagem
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={formData.image}
+                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                        className="input-field"
+                                        placeholder="https://exemplo.com/imagem.jpg"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="input-label">
+                                        Ordem de Exibição
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={formData.order}
+                                        onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                                        className="input-field"
+                                        placeholder="0"
+                                        min="0"
+                                    />
+                                </div>
+
+                                <div className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        id="isActive"
+                                        checked={formData.isActive}
+                                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                        className="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+                                    />
+                                    <label htmlFor="isActive" className="ml-2 block text-sm text-gray-900">
+                                        Categoria ativa
+                                    </label>
+                                </div>
+
+                                <div className="flex justify-end space-x-3 pt-4 bg-gray-50 rounded-b-2xl px-6 py-4 -mx-6 -mb-6 border-t border-gray-100">
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseForm}
+                                        className="btn-secondary"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="btn-primary"
+                                    >
+                                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : null} {editingCategory ? 'Atualizar' : 'Criar'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-
-                        <form onSubmit={handleSubmit} className="p-6 space-y-5 flex-1 overflow-y-auto">
-                            <div>
-                                <label className="input-label">
-                                    Nome da Categoria *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="input-field"
-                                    placeholder="Ex: Bebidas"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="input-label">
-                                    Descrição
-                                </label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    rows={3}
-                                    className="input-field"
-                                    placeholder="Descrição opcional da categoria..."
-                                />
-                            </div>
-
-                            <div>
-                                <label className="input-label">
-                                    URL da Imagem
-                                </label>
-                                <input
-                                    type="url"
-                                    value={formData.image}
-                                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                    className="input-field"
-                                    placeholder="https://exemplo.com/imagem.jpg"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="input-label">
-                                    Ordem de Exibição
-                                </label>
-                                <input
-                                    type="number"
-                                    value={formData.order}
-                                    onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
-                                    className="input-field"
-                                    placeholder="0"
-                                    min="0"
-                                />
-                            </div>
-
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id="isActive"
-                                    checked={formData.isActive}
-                                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                    className="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
-                                />
-                                <label htmlFor="isActive" className="ml-2 block text-sm text-gray-900">
-                                    Categoria ativa
-                                </label>
-                            </div>
-
-                            <div className="flex justify-end space-x-3 pt-4 bg-gray-50 rounded-b-2xl px-6 py-4 -mx-6 -mb-6 border-t border-gray-100">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseForm}
-                                    className="btn-secondary"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="btn-primary"
-                                >
-                                    {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : null} {editingCategory ? 'Atualizar' : 'Criar'}
-                                </button>
-                            </div>
-                        </form>
                     </div>
-                </div>,
-                document.body
+                </Portal>
             )}
         </div>
     );

@@ -18,7 +18,7 @@ import {
     Table2,
     Hash
 } from 'lucide-react';
-import { createPortal } from 'react-dom';
+import { Portal } from '@/components/PortalRoot';
 import {
     IngredientResponse,
     getIngredients,
@@ -404,118 +404,119 @@ export function InventoryManagement() {
                 />
             )}
 
-            {isQuickAdjustOpen && createPortal(
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
-                    <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] flex flex-col">
-                        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                                    <RefreshCcw className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-gray-900">Ajuste rápido de estoque</h3>
-                                    <p className="text-sm text-gray-500">Atualize a quantidade disponível de um insumo em segundos.</p>
-                                </div>
-                            </div>
-                            <button onClick={closeQuickAdjust} className="text-gray-400 hover:text-gray-600">✕</button>
-                        </div>
-
-                        <form onSubmit={handleQuickAdjustSubmit} className="flex-1 flex flex-col">
-                            <div className="p-6 space-y-5 flex-1 overflow-y-auto">
-                                {quickAdjustError && (
-                                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-                                        <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-red-800">Erro</h3>
-                                            <p className="text-sm text-red-700 mt-1">{quickAdjustError}</p>
-                                        </div>
+            {isQuickAdjustOpen && (
+                <Portal>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modalSlideIn">
+                        <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[90vh] flex flex-col">
+                            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                        <RefreshCcw className="h-5 w-5 text-white" />
                                     </div>
-                                )}
-
-                                <div>
-                                    <label className="input-label">Selecione o insumo *</label>
-                                    <div className="relative">
-                                        <Package className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                        <select
-                                            value={quickAdjustState.ingredientId}
-                                            onChange={(event) => setQuickAdjustState((prev) => ({ ...prev, ingredientId: event.target.value }))}
-                                            className="input-field pl-10"
-                                            required
-                                        >
-                                            <option value="">Selecione um insumo</option>
-                                            {ingredients.map((ingredient) => (
-                                                <option key={ingredient.id} value={ingredient.id}>
-                                                    {ingredient.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
-                                        <label className="input-label">Tipo de operação *</label>
+                                        <h3 className="text-xl font-bold text-gray-900">Ajuste rápido de estoque</h3>
+                                        <p className="text-sm text-gray-500">Atualize a quantidade disponível de um insumo em segundos.</p>
+                                    </div>
+                                </div>
+                                <button onClick={closeQuickAdjust} className="text-gray-400 hover:text-gray-600">✕</button>
+                            </div>
+
+                            <form onSubmit={handleQuickAdjustSubmit} className="flex-1 flex flex-col">
+                                <div className="px-6 pt-6 space-y-5 flex-1 overflow-y-auto">
+                                    {quickAdjustError && (
+                                        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                                            <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                                            <div>
+                                                <h3 className="text-sm font-semibold text-red-800">Erro</h3>
+                                                <p className="text-sm text-red-700 mt-1">{quickAdjustError}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <label className="input-label">Selecione o insumo *</label>
                                         <div className="relative">
-                                            <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <Package className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                                             <select
-                                                value={quickAdjustState.operation}
-                                                onChange={(event) => setQuickAdjustState((prev) => ({ ...prev, operation: event.target.value as QuickAdjustState['operation'] }))}
+                                                value={quickAdjustState.ingredientId}
+                                                onChange={(event) => setQuickAdjustState((prev) => ({ ...prev, ingredientId: event.target.value }))}
                                                 className="input-field pl-10"
+                                                required
                                             >
-                                                <option value="add">Entrada (somar)</option>
-                                                <option value="subtract">Saída (subtrair)</option>
-                                                <option value="set">Definir quantidade</option>
+                                                <option value="">Selecione um insumo</option>
+                                                {ingredients.map((ingredient) => (
+                                                    <option key={ingredient.id} value={ingredient.id}>
+                                                        {ingredient.name}
+                                                    </option>
+                                                ))}
                                             </select>
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <label className="input-label">Quantidade *</label>
-                                        <div className="relative">
-                                            <ArrowUpCircle className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                        <input
-                                            type="number"
-                                            min="0"
-                                                step="0.01"
-                                                value={quickAdjustState.quantity}
-                                                onChange={(event) => setQuickAdjustState((prev) => ({ ...prev, quantity: Number(event.target.value) }))}
-                                                className="input-field pl-10"
-                                                required
-                                            />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div>
+                                            <label className="input-label">Tipo de operação *</label>
+                                            <div className="relative">
+                                                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                                <select
+                                                    value={quickAdjustState.operation}
+                                                    onChange={(event) => setQuickAdjustState((prev) => ({ ...prev, operation: event.target.value as QuickAdjustState['operation'] }))}
+                                                    className="input-field pl-10"
+                                                >
+                                                    <option value="add">Entrada (somar)</option>
+                                                    <option value="subtract">Saída (subtrair)</option>
+                                                    <option value="set">Definir quantidade</option>
+                                                </select>
+                                            </div>
                                         </div>
+
+                                        <div>
+                                            <label className="input-label">Quantidade *</label>
+                                            <div className="relative">
+                                                <ArrowUpCircle className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    value={quickAdjustState.quantity}
+                                                    onChange={(event) => setQuickAdjustState((prev) => ({ ...prev, quantity: Number(event.target.value) }))}
+                                                    className="input-field pl-10"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="input-label">Observações (opcional)</label>
+                                        <textarea
+                                            value={quickAdjustState.notes}
+                                            onChange={(event) => setQuickAdjustState((prev) => ({ ...prev, notes: event.target.value }))}
+                                            rows={3}
+                                            className="input-field"
+                                            placeholder="Descreva o motivo do ajuste ou referência da compra."
+                                        />
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="input-label">Observações (opcional)</label>
-                                    <textarea
-                                        value={quickAdjustState.notes}
-                                        onChange={(event) => setQuickAdjustState((prev) => ({ ...prev, notes: event.target.value }))}
-                                        rows={3}
-                                        className="input-field"
-                                        placeholder="Descreva o motivo do ajuste ou referência da compra."
-                                    />
-                                </div>
-                                </div>
-
-                            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-2xl -mx-6 -mb-6">
-                                <button type="button" onClick={closeQuickAdjust} className="btn-secondary">
+                                <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-2xl -mx-6 -mb-6">
+                                    <button type="button" onClick={closeQuickAdjust} className="btn-secondary">
                                         Cancelar
                                     </button>
-                                <button type="submit" disabled={isAdjusting} className="btn-primary">
-                                    {isAdjusting ? (
-                                        <>
-                                            <Loader2 className="h-5 w-5 animate-spin mr-2" /> Salvando...
-                                        </>
-                                    ) : (
-                                        'Aplicar ajuste'
-                                    )}
+                                    <button type="submit" disabled={isAdjusting} className="btn-primary">
+                                        {isAdjusting ? (
+                                            <>
+                                                <Loader2 className="h-5 w-5 animate-spin mr-2" /> Salvando...
+                                            </>
+                                        ) : (
+                                            'Aplicar ajuste'
+                                        )}
                                     </button>
                                 </div>
                             </form>
+                        </div>
                     </div>
-                </div>,
-                document.body
+                </Portal>
             )}
         </div>
     );
