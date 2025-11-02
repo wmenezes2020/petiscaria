@@ -56,7 +56,7 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
 
 # Definir variáveis de ambiente para RUNTIME (não build)
-ENV NODE_ENV=production
+# ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 # NOTA: Variáveis NEXT_PUBLIC_* devem ser configuradas no Coolify
 # como variáveis de ambiente da aplicação (não do build)
