@@ -13,8 +13,7 @@ ARG NODE_VERSION=20.11.1
 # ------------------------------------------------------------
 FROM node:${NODE_VERSION}-alpine AS base
 
-ENV NODE_ENV=production \
-    NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 WORKDIR /app
 
@@ -29,7 +28,7 @@ RUN apk add --no-cache libc6-compat
 COPY package*.json ./
 
 # Use npm ci for reproducible installs
-RUN npm ci
+RUN npm ci --include=dev
 
 # ------------------------------------------------------------
 # Builder stage – compile Next.js app
