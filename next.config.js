@@ -1,48 +1,33 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+  },
   images: {
+    domains: ['localhost'],
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '',
-        pathname: '/**',
-      },
-      {
         protocol: 'https',
-        hostname: 'api.petiscariadathay.com',
-        port: '',
-        pathname: '/**',
+        hostname: '**',
       },
     ],
-    unoptimized: false,
   },
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1',
-  },
-  experimental: {
-    isrMemoryCacheSize: 0,
-  },
-  // Produção estável
-  output: 'standalone',
-  reactStrictMode: false,
-  poweredByHeader: false,
-  compress: true,
-  swcMinify: true,
-  generateEtags: false,
-  productionBrowserSourceMaps: false,
-  compiler: {
-    removeConsole: false,
-  },
+  // PWA configuration
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: '/:path*',
         headers: [
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
-          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
         ],
       },
     ];
@@ -50,3 +35,5 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+
+

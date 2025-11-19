@@ -1,0 +1,44 @@
+{
+  "name": "Petiscaria da Thay",
+  "short_name": "Petiscaria",
+  "description": "Sistema de gestão para petiscarias, bares e restaurantes",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ef4444",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "business", "productivity"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Comanda",
+      "short_name": "Comanda",
+      "description": "Abrir comanda digital",
+      "url": "/app/comanda",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "KDS",
+      "short_name": "KDS",
+      "description": "Kitchen Display System",
+      "url": "/app/kds",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
+
+
