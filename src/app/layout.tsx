@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { QueryProvider } from '@/providers/query-provider';
@@ -11,18 +11,19 @@ export const metadata: Metadata = {
   title: 'Petiscaria da Thay - Sistema de Gestão',
   description: 'Sistema completo de gestão para petiscarias, bares e restaurantes',
   manifest: '/manifest.json',
-  themeColor: '#ef4444',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Petiscaria da Thay',
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#ef4444',
 };
 
 export default function RootLayout({

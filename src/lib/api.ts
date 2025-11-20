@@ -1,3 +1,5 @@
+import { getAccessTokenFromStorage } from './auth-cookies';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export class ApiError extends Error {
@@ -35,10 +37,17 @@ export async function apiRequest<T>(
     'Content-Type': 'application/json',
   };
 
+  const authHeaders: HeadersInit = {};
+  const token = getAccessTokenFromStorage();
+  if (token) {
+    authHeaders['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(url, {
     ...options,
     headers: {
       ...defaultHeaders,
+      ...authHeaders,
       ...options.headers,
     },
     credentials: 'include', // Include cookies for authentication

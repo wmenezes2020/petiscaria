@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
-import { api } from '@/lib/api';
-import type { LoginCredentials, AuthResponse } from '@/types';
+import { login as loginRequest } from '@/lib/auth';
+import type { LoginCredentials } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,7 +29,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await api.post<AuthResponse>('/auth/login', {
+      const response = await loginRequest({
         ...credentials,
         twoFactorCode: show2FA ? twoFactorCode : undefined,
       });

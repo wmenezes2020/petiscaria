@@ -9,7 +9,7 @@ export function middleware(request: NextRequest) {
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
 
   // Check for auth token in cookies
-  const token = request.cookies.get('accessToken');
+  const token = request.cookies.get('accessTokenServer');
 
   // Redirect to login if accessing protected route without token
   if (!isPublicRoute && !token) {
