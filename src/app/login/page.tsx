@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
@@ -115,6 +116,12 @@ export default function LoginPage() {
                 'Entrar'
               )}
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              Ainda não possui conta?{' '}
+              <Link href="/cadastro" className="text-primary underline-offset-2 hover:underline">
+                Cadastre-se gratuitamente
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>
